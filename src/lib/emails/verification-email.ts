@@ -71,7 +71,6 @@ export const sendVerificationOtp = async ({
   otp,
 }: SendVerificationOtpProps) => {
   const content = emailContentByType[type];
-  const otpDisplay = otp.split("").join(" ");
   const text = [
     `${content.heading} - DaoLMS`,
     "",
@@ -104,7 +103,7 @@ export const sendVerificationOtp = async ({
           </p>
           <div style="margin:0 0 20px;padding:20px 24px;border:1px solid ${EMAIL_THEME.border};border-radius:${EMAIL_THEME.radius};background:${EMAIL_THEME.codeBackground};text-align:center;">
             <div style="font-size:34px;line-height:1.1;font-weight:800;letter-spacing:0.28em;color:${EMAIL_THEME.primary};text-transform:uppercase;">
-              ${otpDisplay}
+              ${otp}
             </div>
           </div>
 

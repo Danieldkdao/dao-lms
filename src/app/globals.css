@@ -167,7 +167,7 @@
   --font-sans: Outfit, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: Geist Mono, ui-monospace, monospace;
-  --radius: 1rem;
+  --radius: 0.15rem;
   --shadow-x: 0;
   --shadow-y: 1px;
   --shadow-blur: 3px;
