@@ -1,4 +1,4 @@
-import { Logo } from "@/components/logo";
+import { Logo } from "@/components/dashboard/logo";
 import { ReactNode } from "react";
 
 const AuthLayout = ({ children }: { children: ReactNode }) => {

@@ -6,7 +6,7 @@ export const Logo = () => {
       <div className="p-1 rounded-xl bg-primary">
         <TerminalSquareIcon className="size-8" />
       </div>
-      <span className="text-2xl font-semibold text-muted-foreground">
+      <span className="text-xl font-semibold text-muted-foreground">
         DaoLMS
       </span>
     </div>

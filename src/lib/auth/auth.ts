@@ -4,6 +4,7 @@ import { db } from "@/db/db";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { envServer } from "@/data/env/server";
 import { sendVerificationOtp } from "../emails/verification-email";
+import { admin } from "better-auth/plugins";
 
 export const auth = betterAuth({
   emailAndPassword: {
@@ -27,6 +28,7 @@ export const auth = betterAuth({
         await sendVerificationOtp(data);
       },
     }),
+    admin(),
   ],
   session: {
     cookieCache: {

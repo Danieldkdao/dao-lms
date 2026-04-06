@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const outfitSans = Outfit({
   variable: "--font-outfit-sans",
@@ -30,8 +31,10 @@ export default function RootLayout({
       className={`${outfitSans.className} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
-        <Toaster />
+        <TooltipProvider>
+          {children}
+          <Toaster />
+        </TooltipProvider>
       </body>
     </html>
   );
