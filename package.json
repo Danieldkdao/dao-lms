@@ -10,7 +10,8 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:auth": "pnpm dlx auth@latest generate --config ./src/lib/auth/auth.ts --output ./src/db/schemas/new-user.ts"
   },
   "dependencies": {
     "@dnd-kit/react": "^0.3.2",
@@ -28,6 +29,7 @@
     "lucide-react": "^1.7.0",
     "next": "16.2.2",
     "next-themes": "^0.4.6",
+    "nodemailer": "^8.0.4",
     "radix-ui": "^1.4.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -43,6 +45,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.10",

@@ -1,0 +1,40 @@
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "@/db/db";
+import { emailOTP } from "better-auth/plugins/email-otp";
+import { envServer } from "@/data/env/server";
+import { sendVerificationOtp } from "../emails/verification-email";
+
+export const auth = betterAuth({
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: true,
+  },
+  emailVerification: {
+    autoSignInAfterVerification: true,
+    sendOnSignUp: true,
+  },
+  socialProviders: {
+    github: {
+      clientId: envServer.GITHUB_CLIENT_ID,
+      clientSecret: envServer.GITHUB_CLIENT_SECRET,
+    },
+  },
+  plugins: [
+    emailOTP({
+      overrideDefaultEmailVerification: true,
+      async sendVerificationOTP(data) {
+        await sendVerificationOtp(data);
+      },
+    }),
+  ],
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 60,
+    },
+  },
+  database: drizzleAdapter(db, {
+    provider: "pg",
+  }),
+});
