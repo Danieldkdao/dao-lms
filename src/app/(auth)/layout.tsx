@@ -1,9 +1,11 @@
+import { BackButton } from "@/components/back-button";
 import { Logo } from "@/components/dashboard/logo";
 import { ReactNode } from "react";
 
 const AuthLayout = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="w-full h-svh py-10 px-6 overflow-auto flex items-center justify-center">
+    <div className="w-full h-svh py-10 px-6 overflow-auto flex items-center justify-center relative">
+      <BackButton href="/" className="absolute top-8 left-8" />
       <div className="w-full max-w-105 flex flex-col items-center gap-4">
         <Logo />
         {children}
