@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { courseSchema, CourseSchemaType } from "../actions/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,9 +32,71 @@ import {
   formatCourseStatus,
 } from "../lib/formatters";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon } from "lucide-react";
+import { UploadDropzone } from "@/components/upload-dropzone";
+import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
+
+type PresignedUrlResponse = {
+  error: boolean;
+  message: string;
+  data?: {
+    url?: string;
+  };
+};
+
+const createThumbnailKey = (file: File) => {
+  const safeFileName = file.name
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-");
+
+  return `courses/thumbnails/${crypto.randomUUID()}-${safeFileName}`;
+};
+
+const uploadFileWithProgress = (
+  url: string,
+  file: File,
+  onProgress: (progress: number) => void,
+) => {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+
+      onProgress(Math.round((event.loaded / event.total) * 100));
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200 || xhr.status === 204) {
+        onProgress(100);
+        resolve();
+        return;
+      }
+
+      reject(new Error(`Upload failed with status ${xhr.status}`));
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Upload failed"));
+    };
+
+    xhr.open("PUT", url);
+
+    if (file.type) {
+      xhr.setRequestHeader("Content-Type", file.type);
+    }
+
+    xhr.send(file);
+  });
+};
 
 export const CourseForm = () => {
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const [isDeletingThumbnail, setIsDeletingThumbnail] = useState(false);
+  const [thumbnailUploadProgress, setThumbnailUploadProgress] = useState(0);
+
   const form = useForm<CourseSchemaType>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
@@ -42,7 +105,7 @@ export const CourseForm = () => {
       smallDescription: "",
       description: "",
       thumbnailImage: undefined,
-      thumbnailKey: undefined,
+      thumbnailKey: "",
       category: undefined,
       level: undefined,
       duration: 0,
@@ -53,6 +116,109 @@ export const CourseForm = () => {
 
   const handleCreateCourse = async (data: CourseSchemaType) => {
     return data;
+  };
+
+  const handleUploadImage = async (files: File[]) => {
+    const imageToUpload = files[0];
+    if (!imageToUpload) return;
+
+    const key = createThumbnailKey(imageToUpload);
+
+    setIsUploadingThumbnail(true);
+    setThumbnailUploadProgress(0);
+
+    try {
+      const presignedResponse = await fetch("/api/s3/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key }),
+      });
+
+      const presignedPayload =
+        (await presignedResponse.json()) as PresignedUrlResponse;
+      const presignedUrl = presignedPayload.data?.url;
+
+      if (!presignedResponse.ok || presignedPayload.error || !presignedUrl) {
+        throw new Error(
+          presignedPayload.message || "Failed to get upload URL.",
+        );
+      }
+
+      await uploadFileWithProgress(
+        presignedUrl,
+        imageToUpload,
+        setThumbnailUploadProgress,
+      );
+
+      form.setValue("thumbnailImage", imageToUpload, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      form.setValue("thumbnailKey", key, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      toast.success("Thumbnail uploaded successfully.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to upload thumbnail.";
+
+      form.setValue("thumbnailKey", "", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setThumbnailUploadProgress(0);
+      toast.error(message);
+      throw error;
+    } finally {
+      setIsUploadingThumbnail(false);
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    const key = form.getValues("thumbnailKey");
+    if (!key) return;
+
+    setIsDeletingThumbnail(true);
+
+    try {
+      const presignedResponse = await fetch("/api/s3/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key }),
+      });
+
+      const presignedPayload =
+        (await presignedResponse.json()) as PresignedUrlResponse;
+      const presignedUrl = presignedPayload.data?.url;
+
+      if (!presignedResponse.ok || presignedPayload.error || !presignedUrl) {
+        throw new Error(
+          presignedPayload.message || "Failed to get delete URL.",
+        );
+      }
+
+      const deleteResponse = await fetch(presignedUrl, { method: "DELETE" });
+
+      if (!deleteResponse.ok) {
+        throw new Error("Failed to delete thumbnail from storage.");
+      }
+
+      form.setValue("thumbnailKey", "", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setThumbnailUploadProgress(0);
+      toast.success("Thumbnail deleted successfully.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to delete thumbnail.";
+
+      toast.error(message);
+      throw error;
+    } finally {
+      setIsDeletingThumbnail(false);
+    }
   };
 
   return (
@@ -137,7 +303,30 @@ export const CourseForm = () => {
           <Field>
             <FieldLabel>Thumbnail Image</FieldLabel>
             <FieldContent>
-              {/* todo: handle secure file image uploads w/ custom dropzone */}
+              <UploadDropzone
+                values={field.value ? [field.value] : []}
+                onChange={(files) => field.onChange(files?.[0])}
+                onFilesSelected={handleUploadImage}
+                onFileDelete={handleDeleteImage}
+                accept="image/png, image/jpeg, image/jpg, image/webp"
+              />
+              {(isUploadingThumbnail || isDeletingThumbnail) && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>
+                      {isUploadingThumbnail
+                        ? "Uploading thumbnail..."
+                        : "Deleting thumbnail..."}
+                    </span>
+                    {isUploadingThumbnail && (
+                      <span>{thumbnailUploadProgress}%</span>
+                    )}
+                  </div>
+                  {isUploadingThumbnail && (
+                    <Progress value={thumbnailUploadProgress} />
+                  )}
+                </div>
+              )}
             </FieldContent>
             {fieldState.error && <FieldError errors={[fieldState.error]} />}
           </Field>
@@ -271,9 +460,20 @@ export const CourseForm = () => {
           </Select>
         )}
       />
-      <Button className="w-full sm:w-fit">
-        Create Course
-        <PlusIcon />
+      <Button
+        className="w-full sm:w-fit"
+        disabled={
+          form.formState.isSubmitting ||
+          isUploadingThumbnail ||
+          isDeletingThumbnail
+        }
+      >
+        {form.formState.isSubmitting ? "Creating Course..." : "Create Course"}
+        {form.formState.isSubmitting ? (
+          <Loader2Icon className="animate-spin" />
+        ) : (
+          <PlusIcon />
+        )}
       </Button>
     </form>
   );

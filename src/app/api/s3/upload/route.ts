@@ -3,7 +3,7 @@ import { getUploadPresignedUrl } from "@/services/tigris/presigns";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (request: NextRequest) => {
-  const { fileName }: { fileName: string } = await request.json();
+  const { key }: { key: string } = await request.json();
 
   const authResult = await requireAdminPermission();
   if (!authResult.data || !authResult.result) {
@@ -13,12 +13,15 @@ export const POST = async (request: NextRequest) => {
     );
   }
 
-  const presignedUrl = await getUploadPresignedUrl(fileName);
+  const presignedUrl = await getUploadPresignedUrl(key);
   if (!presignedUrl) {
-    return NextResponse.json({
-      error: true,
-      message: "Something went wrong. Failed to get presigned url.",
-    });
+    return NextResponse.json(
+      {
+        error: true,
+        message: "Something went wrong. Failed to get presigned url.",
+      },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({

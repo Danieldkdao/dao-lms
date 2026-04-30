@@ -15,15 +15,25 @@ export const courseSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(1, { error: "Please enter a course description." }),
-  thumbnailImage: z
+    .min(20, { error: "Please enter a course description." }),
+  thumbnailImage: z.file({
+    error: "Please upload a thumbnail image for the course.",
+  }),
+  thumbnailKey: z
     .string()
     .min(1, { error: "Please upload a thumbnail image for the course." }),
-  thumbnailKey: z.string().min(1),
-  category: z.enum(courseCategories),
-  level: z.enum(courseLevels),
-  duration: z.number().int().positive().min(1),
-  price: z.number().int().positive().min(1),
-  status: z.enum(courseStatuses),
+  category: z.enum(courseCategories, { error: "Please select a category" }),
+  level: z.enum(courseLevels, { error: "Please select a level" }),
+  duration: z
+    .number({ error: "Please enter a positive integer greater than 0" })
+    .int({ error: "Please enter a positive integer greater than 0" })
+    .positive({ error: "Please enter a positive integer greater than 0" })
+    .min(1, { error: "Please enter a positive integer greater than 0" }),
+  price: z
+    .number({ error: "Please enter a positive integer greater than 0" })
+    .int({ error: "Please enter a positive integer greater than 0" })
+    .positive({ error: "Please enter a positive integer greater than 0" })
+    .min(1, { error: "Please enter a positive integer greater than 0" }),
+  status: z.enum(courseStatuses, { error: "Please select a status" }),
 });
 export type CourseSchemaType = z.infer<typeof courseSchema>;

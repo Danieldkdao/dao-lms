@@ -37,6 +37,7 @@ export const CourseTable = pgTable("courses", {
   slug: varchar("slug").notNull().unique(),
   smallDescription: text("small_description").notNull(),
   description: text("description").notNull(),
+  thumbnailKey: varchar("thumbnail_key").notNull(),
   category: courseCategoryEnum("category").notNull(),
   level: courseLevelEnum("level").notNull(),
   duration: integer("duration").notNull(),
