@@ -22,7 +22,7 @@ import {
   Undo2Icon,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -240,7 +240,7 @@ const EditorButton = ({
   </Tooltip>
 );
 
-export const MarkdownEditor = ({
+export const MDEditor = ({
   value,
   onChange,
   disabled = false,
@@ -331,5 +331,13 @@ export const MarkdownEditor = ({
         </div>
       </div>
     </TooltipProvider>
+  );
+};
+
+export const MarkdownEditor = (props: TiptapProps) => {
+  return (
+    <Suspense>
+      <MDEditor {...props} />
+    </Suspense>
   );
 };
