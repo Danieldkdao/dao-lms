@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { courseSchema, CourseSchemaType } from "../actions/schema";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { MarkdownEditor } from "@/components/markdown/tiptap";
+import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldContent,
@@ -11,9 +9,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { borderRedError, cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
-import { MarkdownEditor } from "@/components/markdown/tiptap";
+import { LoadingSwap } from "@/components/ui/loading-swap";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -21,21 +18,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { UploadDropzone } from "@/components/upload-dropzone";
 import {
   courseCategories,
   courseLevels,
   courseStatuses,
 } from "@/db/schemas/course";
+import { borderRedError, cn, generateSlug } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { PlusIcon } from "lucide-react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { createCourse } from "../actions/actions";
+import { courseSchema, CourseSchemaType } from "../actions/schema";
 import {
   formatCourseCategory,
   formatCourseLevel,
   formatCourseStatus,
 } from "../lib/formatters";
-import { Button } from "@/components/ui/button";
-import { Loader2Icon, PlusIcon } from "lucide-react";
-import { UploadDropzone } from "@/components/upload-dropzone";
-import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
 
 type PresignedUrlResponse = {
   error: boolean;
@@ -115,7 +117,13 @@ export const CourseForm = () => {
   });
 
   const handleCreateCourse = async (data: CourseSchemaType) => {
-    return data;
+    const response = await createCourse(data);
+    if (response.error) {
+      toast.error(response.message);
+    } else {
+      toast.success(response.message);
+    }
+    form.reset();
   };
 
   const handleUploadImage = async (files: File[]) => {
@@ -235,6 +243,10 @@ export const CourseForm = () => {
             <FieldContent>
               <Input
                 {...field}
+                onChange={(e) => {
+                  form.setValue("slug", generateSlug(e.target.value));
+                  field.onChange(e);
+                }}
                 placeholder="Enter course title here..."
                 className={borderRedError(fieldState.error)}
               />
@@ -251,9 +263,10 @@ export const CourseForm = () => {
             <FieldLabel>Slug</FieldLabel>
             <FieldContent>
               <Input
-                {...field}
+                value={field.value}
                 placeholder="Course slug will be entered here..."
                 className={borderRedError(fieldState.error)}
+                disabled
               />
             </FieldContent>
             {fieldState.error && <FieldError errors={[fieldState.error]} />}
@@ -340,7 +353,10 @@ export const CourseForm = () => {
             <Field>
               <FieldLabel>Category</FieldLabel>
               <FieldContent>
-                <Select {...field}>
+                <Select
+                  {...field}
+                  onValueChange={(value) => field.onChange(value)}
+                >
                   <SelectTrigger
                     className={cn(borderRedError(fieldState.error), "w-full")}
                   >
@@ -366,7 +382,10 @@ export const CourseForm = () => {
             <Field>
               <FieldLabel>Level</FieldLabel>
               <FieldContent>
-                <Select {...field}>
+                <Select
+                  {...field}
+                  onValueChange={(value) => field.onChange(value)}
+                >
                   <SelectTrigger
                     className={cn("w-full", borderRedError(fieldState.error))}
                   >
@@ -403,9 +422,9 @@ export const CourseForm = () => {
                   step={1}
                   value={value ?? ""}
                   onChange={(e) =>
-                    !Number.isNaN(e.target.value)
-                      ? onChange(e.target.valueAsNumber)
-                      : undefined
+                    Number.isNaN(e.target.value)
+                      ? undefined
+                      : onChange(e.target.valueAsNumber)
                   }
                 />
               </FieldContent>
@@ -429,9 +448,9 @@ export const CourseForm = () => {
                   step={1}
                   value={value ?? ""}
                   onChange={(e) =>
-                    !Number.isNaN(e.target.value)
-                      ? onChange(e.target.valueAsNumber)
-                      : undefined
+                    Number.isNaN(e.target.value)
+                      ? undefined
+                      : onChange(e.target.valueAsNumber)
                   }
                 />
               </FieldContent>
@@ -444,7 +463,7 @@ export const CourseForm = () => {
         name="status"
         control={form.control}
         render={({ field, fieldState }) => (
-          <Select {...field}>
+          <Select {...field} onValueChange={(value) => field.onChange(value)}>
             <SelectTrigger
               className={cn("w-full", borderRedError(fieldState.error))}
             >
@@ -468,12 +487,12 @@ export const CourseForm = () => {
           isDeletingThumbnail
         }
       >
-        {form.formState.isSubmitting ? "Creating Course..." : "Create Course"}
-        {form.formState.isSubmitting ? (
-          <Loader2Icon className="animate-spin" />
-        ) : (
-          <PlusIcon />
-        )}
+        <LoadingSwap isLoading={form.formState.isSubmitting}>
+          <div className="flex items-center gap-2">
+            Create Course
+            <PlusIcon />
+          </div>
+        </LoadingSwap>
       </Button>
     </form>
   );
