@@ -6,12 +6,12 @@ import {
   INVALID_DATA_MESSAGE,
   NO_PERMISSION_MESSAGE,
 } from "@/lib/auth/constants";
-import { insertCourse } from "../db/courses";
+import { insertCourse, updateCourse as updateCourseDb } from "../db/courses";
 import { db } from "@/db/db";
 import { CourseTable } from "@/db/schema";
 import { cacheTag } from "next/cache";
 import { getCourseGlobalTag, getCourseIdTag } from "../db/cache/courses";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export const createCourse = async (unsafeData: CourseSchemaType) => {
   if (!(await requireAdminPermission())) {
@@ -38,11 +38,42 @@ export const createCourse = async (unsafeData: CourseSchemaType) => {
   };
 };
 
+export const updateCourse = async (
+  courseId: string,
+  unsafeData: CourseSchemaType,
+) => {
+  if (!(await requireAdminPermission())) {
+    return {
+      error: true,
+      message: NO_PERMISSION_MESSAGE,
+    };
+  }
+
+  const { data, success } = courseSchema.safeParse(unsafeData);
+  if (!success) {
+    return {
+      error: true,
+      message: INVALID_DATA_MESSAGE,
+    };
+  }
+  const { thumbnailImage, ...dataToUpdate } = data;
+
+  await updateCourseDb(courseId, dataToUpdate);
+
+  return {
+    error: false,
+    message: "Course updated successfully!",
+  };
+};
+
 export const getCourses = async () => {
   "use cache";
   cacheTag(getCourseGlobalTag());
 
-  const courses = await db.select().from(CourseTable);
+  const courses = await db
+    .select()
+    .from(CourseTable)
+    .orderBy(desc(CourseTable.updatedAt), desc(CourseTable.id));
 
   return courses;
 };

@@ -8,6 +8,12 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "./ui/button";
 
+export type UploadDropzoneValue = {
+  file?: File;
+  url: string;
+  key?: string;
+};
+
 export const UploadDropzone = ({
   onFilesSelected,
   onFileDelete,
@@ -17,15 +23,18 @@ export const UploadDropzone = ({
   onChange,
 }: {
   onFilesSelected: (files: File[]) => Promise<void>;
-  onFileDelete: (file: File) => Promise<void>;
+  onFileDelete: (key?: string) => Promise<void>;
   accept?: string;
   multiple?: boolean;
-  values: File[];
+  values: UploadDropzoneValue[];
   onChange: (files: File[]) => void;
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileValues = values
+    .map((item) => item.file)
+    .filter((file): file is File => !!file);
 
   const validateFiles = useCallback(
     (files: File[]) => {
@@ -96,19 +105,14 @@ export const UploadDropzone = ({
 
   const handleRemoveFile = async (index: number) => {
     try {
-      await onFileDelete(values[index]);
+      await onFileDelete(values[index]?.key);
     } catch (error) {
       console.error(error);
       return;
     }
-    const updated = values.filter((_, i) => i !== index);
+    const updated = fileValues.filter((_, i) => i !== index);
     onChange(updated);
   };
-
-  const generateImagePreview = useCallback((file: File) => {
-    const previewUrl = URL.createObjectURL(file);
-    return previewUrl;
-  }, []);
 
   return (
     <div className="w-full mx-auto">
@@ -135,9 +139,10 @@ export const UploadDropzone = ({
           </Button>
           <div className="h-40 max-w-120 w-full rounded-sm relative">
             <Image
-              src={generateImagePreview(values?.[0])}
+              src={values[0].url}
               alt="Image Preview"
               fill
+              sizes="(max-width: 48rem) calc(100vw - 5rem), 30rem"
               className="object-cover"
             />
           </div>

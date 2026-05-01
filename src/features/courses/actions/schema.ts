@@ -16,9 +16,11 @@ export const courseSchema = z.object({
     .string()
     .trim()
     .min(20, { error: "Please enter a course description." }),
-  thumbnailImage: z.file({
-    error: "Please upload a thumbnail image for the course.",
-  }),
+  thumbnailImage: z
+    .file({
+      error: "Please upload a thumbnail image for the course.",
+    })
+    .optional(),
   thumbnailKey: z
     .string()
     .min(1, { error: "Please upload a thumbnail image for the course." }),

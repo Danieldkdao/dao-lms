@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CourseTable } from "@/db/schema";
+import { CourseForm } from "../course-form";
 
 export const CourseBasicInfo = ({
   course,
@@ -20,7 +21,9 @@ export const CourseBasicInfo = ({
           Provide basic information about the course
         </CardDescription>
       </CardHeader>
-      <CardContent>course structure</CardContent>
+      <CardContent>
+        <CourseForm course={course} />
+      </CardContent>
     </Card>
   );
 };

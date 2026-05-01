@@ -24,14 +24,20 @@ import {
   courseCategories,
   courseLevels,
   courseStatuses,
+  CourseTable,
 } from "@/db/schemas/course";
-import { borderRedError, cn, generateSlug } from "@/lib/utils";
+import {
+  borderRedError,
+  cn,
+  generateImageUrl,
+  generateSlug,
+} from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { PlusIcon, SaveIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { createCourse } from "../actions/actions";
+import { createCourse, updateCourse } from "../actions/actions";
 import { courseSchema, CourseSchemaType } from "../actions/schema";
 import {
   formatCourseCategory,
@@ -95,14 +101,18 @@ const uploadFileWithProgress = (
   });
 };
 
-export const CourseForm = () => {
+export const CourseForm = ({
+  course,
+}: {
+  course?: typeof CourseTable.$inferSelect;
+}) => {
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [isDeletingThumbnail, setIsDeletingThumbnail] = useState(false);
   const [thumbnailUploadProgress, setThumbnailUploadProgress] = useState(0);
   const router = useRouter();
   const form = useForm<CourseSchemaType>({
     resolver: zodResolver(courseSchema),
-    defaultValues: {
+    defaultValues: course ?? {
       title: "",
       slug: "",
       smallDescription: "",
@@ -117,15 +127,41 @@ export const CourseForm = () => {
     },
   });
 
-  const handleCreateCourse = async (data: CourseSchemaType) => {
-    const response = await createCourse(data);
+  const thumbnailImage = form.watch("thumbnailImage");
+  const thumbnailKey = form.watch("thumbnailKey");
+  const thumbnailPreviewUrl = useMemo(() => {
+    if (thumbnailImage instanceof File) {
+      return URL.createObjectURL(thumbnailImage);
+    }
+
+    if (thumbnailKey) {
+      return generateImageUrl(thumbnailKey);
+    }
+
+    return "";
+  }, [thumbnailImage, thumbnailKey]);
+
+  useEffect(() => {
+    if (!(thumbnailImage instanceof File)) return;
+
+    return () => URL.revokeObjectURL(thumbnailPreviewUrl);
+  }, [thumbnailImage, thumbnailPreviewUrl]);
+
+  const handleCreateUpdateCourse = async (data: CourseSchemaType) => {
+    const action = course ? updateCourse(course.id, data) : createCourse(data);
+    const response = await action;
     if (response.error) {
       toast.error(response.message);
     } else {
       toast.success(response.message);
     }
-    form.reset();
-    router.push("/admin/courses");
+    if (course) {
+      form.reset(data);
+      router.refresh();
+    } else {
+      form.reset();
+      router.push("/admin/courses");
+    }
   };
 
   const handleUploadImage = async (files: File[]) => {
@@ -185,9 +221,9 @@ export const CourseForm = () => {
     }
   };
 
-  const handleDeleteImage = async () => {
-    const key = form.getValues("thumbnailKey");
-    if (!key) return;
+  const handleDeleteImage = async (key?: string) => {
+    const keyToUse = key ?? form.getValues("thumbnailKey");
+    if (!keyToUse) return;
 
     setIsDeletingThumbnail(true);
 
@@ -195,7 +231,7 @@ export const CourseForm = () => {
       const presignedResponse = await fetch("/api/s3/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }),
+        body: JSON.stringify({ key: keyToUse }),
       });
 
       const presignedPayload =
@@ -218,6 +254,10 @@ export const CourseForm = () => {
         shouldDirty: true,
         shouldValidate: true,
       });
+      form.setValue("thumbnailImage", undefined, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
       setThumbnailUploadProgress(0);
       toast.success("Thumbnail deleted successfully.");
     } catch (error) {
@@ -233,7 +273,7 @@ export const CourseForm = () => {
 
   return (
     <form
-      onSubmit={form.handleSubmit(handleCreateCourse)}
+      onSubmit={form.handleSubmit(handleCreateUpdateCourse)}
       className="w-full space-y-4"
     >
       <Controller
@@ -319,7 +359,20 @@ export const CourseForm = () => {
             <FieldLabel>Thumbnail Image</FieldLabel>
             <FieldContent>
               <UploadDropzone
-                values={field.value ? [field.value] : []}
+                values={
+                  thumbnailPreviewUrl
+                    ? [
+                        {
+                          file:
+                            field.value instanceof File
+                              ? field.value
+                              : undefined,
+                          url: thumbnailPreviewUrl,
+                          key: thumbnailKey || undefined,
+                        },
+                      ]
+                    : []
+                }
                 onChange={(files) => field.onChange(files?.[0])}
                 onFilesSelected={handleUploadImage}
                 onFileDelete={handleDeleteImage}
@@ -486,13 +539,23 @@ export const CourseForm = () => {
         disabled={
           form.formState.isSubmitting ||
           isUploadingThumbnail ||
-          isDeletingThumbnail
+          isDeletingThumbnail ||
+          !form.formState.isDirty
         }
       >
         <LoadingSwap isLoading={form.formState.isSubmitting}>
           <div className="flex items-center gap-2">
-            Create Course
-            <PlusIcon />
+            {course ? (
+              <>
+                Update Course
+                <SaveIcon />
+              </>
+            ) : (
+              <>
+                Create Course
+                <PlusIcon />
+              </>
+            )}
           </div>
         </LoadingSwap>
       </Button>
