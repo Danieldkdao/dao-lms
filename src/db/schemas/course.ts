@@ -1,12 +1,7 @@
-import {
-  integer,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { createdAt, id, updatedAt } from "../helpers";
+import { relations } from "drizzle-orm";
+import { ChapterTable } from "./chapter";
 
 export const courseCategories = [
   "development",
@@ -32,7 +27,7 @@ export type CourseStatusType = (typeof courseStatuses)[number];
 export const courseStatusEnum = pgEnum("course_statuses", courseStatuses);
 
 export const CourseTable = pgTable("courses", {
-  id: uuid().primaryKey().defaultRandom(),
+  id,
   title: varchar("title").notNull(),
   slug: varchar("slug").notNull().unique(),
   smallDescription: text("small_description").notNull(),
@@ -43,11 +38,10 @@ export const CourseTable = pgTable("courses", {
   duration: integer("duration").notNull(),
   price: integer("price").notNull(),
   status: courseStatusEnum("status").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
+  createdAt,
+  updatedAt,
 });
+
+export const courseRelations = relations(CourseTable, ({ many }) => ({
+  chapters: many(ChapterTable),
+}));
