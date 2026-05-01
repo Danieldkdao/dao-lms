@@ -1,3 +1,4 @@
+import { envServer } from "@/data/env/server";
 import { clsx, type ClassValue } from "clsx";
 import { FieldError } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
@@ -15,4 +16,8 @@ export const generateSlug = (text: string, uniqueIdentifier?: string) => {
     text.toLowerCase().replaceAll(/\s+/g, "-") +
     (uniqueIdentifier ? `-${uniqueIdentifier}` : "")
   );
+};
+
+export const generateImageUrl = (key: string) => {
+  return `https://${envServer.TIGRIS_STORAGE_BUCKET}.t3.tigrisfiles.io/${key}`;
 };

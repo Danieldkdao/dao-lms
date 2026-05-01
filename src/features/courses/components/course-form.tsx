@@ -38,6 +38,7 @@ import {
   formatCourseLevel,
   formatCourseStatus,
 } from "../lib/formatters";
+import { useRouter } from "next/navigation";
 
 type PresignedUrlResponse = {
   error: boolean;
@@ -98,7 +99,7 @@ export const CourseForm = () => {
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [isDeletingThumbnail, setIsDeletingThumbnail] = useState(false);
   const [thumbnailUploadProgress, setThumbnailUploadProgress] = useState(0);
-
+  const router = useRouter();
   const form = useForm<CourseSchemaType>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
@@ -124,6 +125,7 @@ export const CourseForm = () => {
       toast.success(response.message);
     }
     form.reset();
+    router.push("/admin/courses");
   };
 
   const handleUploadImage = async (files: File[]) => {

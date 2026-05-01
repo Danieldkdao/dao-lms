@@ -1,3 +1,4 @@
+import { NO_PERMISSION_MESSAGE } from "@/lib/auth/constants";
 import { requireAdminPermission } from "@/lib/auth/permissions";
 import { getUploadPresignedUrl } from "@/services/tigris/presigns";
 import { NextRequest, NextResponse } from "next/server";
@@ -5,10 +6,9 @@ import { NextRequest, NextResponse } from "next/server";
 export const POST = async (request: NextRequest) => {
   const { key }: { key: string } = await request.json();
 
-  const authResult = await requireAdminPermission();
-  if (!authResult.data || !authResult.result) {
+  if (!(await requireAdminPermission())) {
     return NextResponse.json(
-      { error: true, message: "You do not have permission to do this." },
+      { error: true, message: NO_PERMISSION_MESSAGE },
       { status: 403 },
     );
   }

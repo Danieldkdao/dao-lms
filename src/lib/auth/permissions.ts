@@ -5,8 +5,24 @@ import { auth } from "./auth";
 import { db } from "@/db/db";
 import { user } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { isAdminRole } from "./helpers";
 
 export const requireAdminPermission = async () => {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return false;
+
+  const [existingUser] = await db
+    .select()
+    .from(user)
+    .where(eq(user.id, session.user.id));
+  if (!existingUser) {
+    return false;
+  }
+
+  return isAdminRole(existingUser.role);
+};
+
+export const requireAdminPermissionData = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session)
     return {

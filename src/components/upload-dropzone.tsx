@@ -133,7 +133,7 @@ export const UploadDropzone = ({
           >
             <XIcon />
           </Button>
-          <div className="h-40 max-w-120 w-full rounded-sm absolute">
+          <div className="h-40 max-w-120 w-full rounded-sm relative">
             <Image
               src={generateImagePreview(values?.[0])}
               alt="Image Preview"
