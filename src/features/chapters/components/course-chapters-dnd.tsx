@@ -3,7 +3,7 @@
 import { ChapterTable, LessonTable } from "@/db/schema";
 import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react";
 import { isSortableOperation } from "@dnd-kit/react/sortable";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SortableChapter } from "./sortable-chapter";
 import { reorderChapters } from "../actions/actions";
 import { toast } from "sonner";
@@ -33,14 +33,30 @@ export const CourseChaptersDnd = ({
   chapters: ChapterWithLessons[];
 }) => {
   const [orderedChapters, setOrderedChapters] = useState(chapters);
+  const shouldSaveOrderRef = useRef(false);
 
   useEffect(() => {
     setOrderedChapters(chapters);
   }, [chapters]);
 
+  const handleReorderChapters = useCallback(
+    async (orderChapters: ChapterWithLessons[]) => {
+      const response = await reorderChapters(courseId, orderChapters);
+      if (response.error) {
+        toast.error(response.message);
+      }
+    },
+    [courseId],
+  );
+
   useEffect(() => {
-    handleReorderChapters(orderedChapters);
-  }, [orderedChapters]);
+    if (!shouldSaveOrderRef.current) {
+      return;
+    }
+
+    shouldSaveOrderRef.current = false;
+    void handleReorderChapters(orderedChapters);
+  }, [handleReorderChapters, orderedChapters]);
 
   const handleDragEnd: DragEndEvent = async (event) => {
     if (event.canceled) {
@@ -63,17 +79,10 @@ export const CourseChaptersDnd = ({
       return;
     }
 
+    shouldSaveOrderRef.current = true;
     setOrderedChapters((currentChapters) =>
       moveItem(currentChapters, initialIndex, index),
     );
-  };
-
-  const handleReorderChapters = async (orderChapters: ChapterWithLessons[]) => {
-    const response = await reorderChapters(courseId, orderChapters);
-    if (response.error) {
-      toast.error(response.message);
-      console.log;
-    }
   };
 
   return (

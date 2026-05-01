@@ -8,11 +8,9 @@ import { FileTextIcon, GripVerticalIcon, Trash2Icon } from "lucide-react";
 
 export const SortableLesson = ({
   lesson,
-  chapterId,
   index,
 }: {
   lesson: typeof LessonTable.$inferSelect;
-  chapterId: string;
   index: number;
 }) => {
   const { handleRef, isDragSource, ref } = useSortable({
