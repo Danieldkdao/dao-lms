@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SortableChapter } from "./sortable-chapter";
 import { reorderChapters } from "../actions/actions";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 type ChapterWithLessons = typeof ChapterTable.$inferSelect & {
   lessons: (typeof LessonTable.$inferSelect)[];
@@ -33,6 +34,7 @@ export const CourseChaptersDnd = ({
   chapters: ChapterWithLessons[];
 }) => {
   const [orderedChapters, setOrderedChapters] = useState(chapters);
+  const [disabled, setDisabled] = useState(false);
   const shouldSaveOrderRef = useRef(false);
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export const CourseChaptersDnd = ({
   }, [handleReorderChapters, orderedChapters]);
 
   const handleDragEnd: DragEndEvent = async (event) => {
-    if (event.canceled) {
+    if (event.canceled || disabled) {
       return;
     }
 
@@ -87,12 +89,21 @@ export const CourseChaptersDnd = ({
 
   return (
     <DragDropProvider onDragEnd={handleDragEnd}>
-      <div className="flex flex-col gap-2">
+      <div
+        className={cn(
+          "flex flex-col gap-2 transition-all duration-300 relative",
+          disabled && "opacity-60 cursor-not-allowed",
+        )}
+      >
+        {disabled && (
+          <div className="absolute inset-0 z-10 cursor-not-allowed bg-transparent" />
+        )}
+        <div></div>
         {orderedChapters.map((chapter, index) => (
           <SortableChapter
             key={chapter.id}
             chapter={chapter}
-            courseId={courseId}
+            setDisabled={setDisabled}
             index={index}
           />
         ))}

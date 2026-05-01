@@ -19,30 +19,56 @@ import { useSortable } from "@dnd-kit/react/sortable";
 import { NewLessonDialog } from "@/features/lessons/components/new-lesson-dialog";
 import { useState } from "react";
 import { ChapterLessonsDnd } from "@/features/lessons/components/chapter-lessons-dnd";
+import { Setter } from "@/lib/types";
+import { deleteChapter } from "../actions/actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export const SortableChapter = ({
   chapter,
-  courseId,
+  setDisabled,
   index,
 }: {
   chapter: typeof ChapterTable.$inferSelect & {
     lessons: (typeof LessonTable.$inferSelect)[];
   };
-  courseId: string;
+  setDisabled: Setter<boolean>;
   index: number;
 }) => {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const [ConfirmationDialog, confirm] = useConfirm(
+    "Confirm Chapter Deletion",
+    "Are you sure that you want to delete this chapter?",
+  );
   const { handleRef, isDragSource, ref } = useSortable({
     id: chapter.id,
     index,
   });
 
+  const handleChapterDeletion = async () => {
+    const confirmation = await confirm();
+    if (!confirmation) return;
+    setDisabled(true);
+
+    const response = await deleteChapter(chapter.id);
+    if (!response.error) {
+      toast.error(response.message);
+    } else {
+      toast.success(response.message);
+      router.refresh();
+    }
+    setDisabled(false);
+  };
+
   return (
     <>
+      <ConfirmationDialog />
       <NewLessonDialog
         open={open}
         setOpen={setOpen}
-        courseId={courseId}
+        courseId={chapter.courseId}
         chapterId={chapter.id}
         position={chapter.lessons.length + 1}
       />
@@ -70,7 +96,12 @@ export const SortableChapter = ({
             </CollapsibleTrigger>
           </div>
 
-          <Button type="button" variant="ghost" size="icon">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleChapterDeletion}
+          >
             <Trash2Icon />
           </Button>
         </div>

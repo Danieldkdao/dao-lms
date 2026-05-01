@@ -10,7 +10,8 @@ import { insertChapter } from "../db/chapters";
 import z from "zod";
 import { db } from "@/db/db";
 import { ChapterTable } from "@/db/schema";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
+import { revalidateCourseCache } from "@/features/courses/db/cache/courses";
 
 export const createChapter = async (
   courseId: string,
@@ -37,6 +38,70 @@ export const createChapter = async (
     error: false,
     message: "Chapter created successfully!",
   };
+};
+
+export const deleteChapter = async (chapterId: string) => {
+  if (!(await requireAdminPermission())) {
+    return {
+      error: true,
+      message: NO_PERMISSION_MESSAGE,
+    };
+  }
+
+  const [existingChapter] = await db
+    .select()
+    .from(ChapterTable)
+    .where(eq(ChapterTable.id, chapterId));
+
+  if (!existingChapter) {
+    return {
+      error: false,
+      message: "Chapter not found.",
+    };
+  }
+
+  try {
+    const deletedChapter = await db.transaction(async (tx) => {
+      const [deletedChapter] = await tx
+        .delete(ChapterTable)
+        .where(
+          and(
+            eq(ChapterTable.id, existingChapter.id),
+            eq(ChapterTable.courseId, existingChapter.courseId),
+          ),
+        )
+        .returning();
+
+      revalidateCourseCache(existingChapter.courseId);
+
+      await tx
+        .update(ChapterTable)
+        .set({
+          position: sql`${ChapterTable.position} - 1`,
+        })
+        .where(
+          and(
+            eq(ChapterTable.courseId, existingChapter.courseId),
+            gt(ChapterTable.position, deletedChapter.position),
+          ),
+        );
+
+      return deletedChapter;
+    });
+    if (!deletedChapter) {
+      throw new Error("DB Error");
+    }
+
+    return {
+      error: false,
+      message: "Chapter deleted successfully!",
+    };
+  } catch (error) {
+    return {
+      error: true,
+      message: "Failed to delete chapter. Please try again.",
+    };
+  }
 };
 
 export const reorderChapters = async (
