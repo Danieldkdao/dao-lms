@@ -29,7 +29,7 @@ export const AdminCourseCard = ({
   course: typeof CourseTable.$inferSelect;
 }) => {
   return (
-    <Card className="p-0">
+    <Card className="p-0 group">
       <CardContent className="p-0">
         <div className="relative h-80">
           <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
@@ -71,7 +71,7 @@ export const AdminCourseCard = ({
           />
         </div>
         <div className="p-5 flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold line-clamp-2">
+          <h1 className="text-2xl font-semibold line-clamp-2 group-hover:text-primary transition-all duration-300 hover:underline">
             {course.title}
           </h1>
           <p className="text-muted-foreground line-clamp-2 text-sm mb-2">

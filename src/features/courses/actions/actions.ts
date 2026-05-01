@@ -10,7 +10,8 @@ import { insertCourse } from "../db/courses";
 import { db } from "@/db/db";
 import { CourseTable } from "@/db/schema";
 import { cacheTag } from "next/cache";
-import { getCourseGlobalTag } from "../db/cache/courses";
+import { getCourseGlobalTag, getCourseIdTag } from "../db/cache/courses";
+import { eq } from "drizzle-orm";
 
 export const createCourse = async (unsafeData: CourseSchemaType) => {
   if (!(await requireAdminPermission())) {
@@ -44,4 +45,16 @@ export const getCourses = async () => {
   const courses = await db.select().from(CourseTable);
 
   return courses;
+};
+
+export const getCourse = async (courseId: string) => {
+  "use cache";
+  cacheTag(getCourseIdTag(courseId));
+
+  const [course] = await db
+    .select()
+    .from(CourseTable)
+    .where(eq(CourseTable.id, courseId));
+
+  return course ?? null;
 };

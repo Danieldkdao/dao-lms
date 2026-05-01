@@ -1,5 +1,7 @@
 import { NoPermission } from "@/components/no-permission";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getCourses } from "@/features/courses/actions/actions";
 import { AdminCourseCard } from "@/features/courses/components/admin-course.card";
 import { requireAdminPermission } from "@/lib/auth/permissions";
@@ -8,9 +10,55 @@ import { Suspense } from "react";
 
 const AdminCoursesPage = () => {
   return (
-    <Suspense>
-      <AdminCoursesSuspense />
-    </Suspense>
+    <div className="p-10 @container space-y-8">
+      <div className="flex items-center gap-2 justify-between flex-wrap">
+        <h1 className="text-3xl font-bold">Your Courses</h1>
+        <Button asChild>
+          <Link href="/admin/courses/create">Create Course</Link>
+        </Button>
+      </div>
+      <Suspense fallback={<AdminCourseLoading />}>
+        <AdminCoursesSuspense />
+      </Suspense>
+    </div>
+  );
+};
+
+const AdminCourseLoading = () => {
+  return (
+    <div className="grid grid-cols-1 gap-8 @lg:grid-cols-2">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Card key={index} className="p-0">
+          <CardContent className="p-0">
+            <div className="relative h-80">
+              <Skeleton className="size-full rounded-b-none" />
+              <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="size-9" />
+              </div>
+            </div>
+            <div className="p-5 flex flex-col gap-2">
+              <Skeleton className="h-8 w-4/5" />
+              <div className="space-y-2 mb-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+              <div className="flex items-center gap-4 flex-wrap mb-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="size-7 rounded-lg" />
+                  <Skeleton className="h-5 w-20" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="size-7 rounded-lg" />
+                  <Skeleton className="h-5 w-24" />
+                </div>
+              </div>
+              <Skeleton className="h-9 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 
@@ -21,18 +69,10 @@ const AdminCoursesSuspense = async () => {
   const courses = await getCourses();
 
   return (
-    <div className="p-10 @container space-y-8">
-      <div className="flex items-center gap-2 justify-between flex-wrap">
-        <h1 className="text-3xl font-bold">Your Courses</h1>
-        <Button asChild>
-          <Link href="/admin/courses/create">Create Course</Link>
-        </Button>
-      </div>
-      <div className="grid grid-cols-1 gap-8 @lg:grid-cols-2">
-        {courses.map((course) => (
-          <AdminCourseCard key={course.id} course={course} />
-        ))}
-      </div>
+    <div className="grid grid-cols-1 gap-8 @lg:grid-cols-2">
+      {courses.map((course) => (
+        <AdminCourseCard key={course.id} course={course} />
+      ))}
     </div>
   );
 };

@@ -10,7 +10,7 @@ import { CourseForm } from "@/features/courses/components/course-form";
 
 const CreateCoursePage = () => {
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-10 space-y-8">
       <div className="flex items-center gap-4">
         <BackButton href="/admin/courses" />
         <h1 className="text-3xl font-semibold">Create Course</h1>
