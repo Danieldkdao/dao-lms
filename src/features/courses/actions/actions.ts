@@ -8,10 +8,10 @@ import {
 } from "@/lib/auth/constants";
 import { insertCourse, updateCourse as updateCourseDb } from "../db/courses";
 import { db } from "@/db/db";
-import { CourseTable } from "@/db/schema";
+import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
 import { cacheTag } from "next/cache";
 import { getCourseGlobalTag, getCourseIdTag } from "../db/cache/courses";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 
 export const createCourse = async (unsafeData: CourseSchemaType) => {
   if (!(await requireAdminPermission())) {
@@ -82,10 +82,19 @@ export const getCourse = async (courseId: string) => {
   "use cache";
   cacheTag(getCourseIdTag(courseId));
 
-  const [course] = await db
-    .select()
-    .from(CourseTable)
-    .where(eq(CourseTable.id, courseId));
+  const course = await db.query.CourseTable.findFirst({
+    where: eq(CourseTable.id, courseId),
+    with: {
+      chapters: {
+        with: {
+          lessons: {
+            orderBy: asc(LessonTable.position),
+          },
+        },
+        orderBy: asc(ChapterTable.position),
+      },
+    },
+  });
 
   return course ?? null;
 };

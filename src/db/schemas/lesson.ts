@@ -6,9 +6,9 @@ import { relations } from "drizzle-orm";
 export const LessonTable = pgTable("lessons", {
   id,
   title: varchar("title").notNull(),
-  description: text("description").notNull(),
+  description: text("description"),
   position: integer("position").notNull(),
-  videoKey: varchar("video_key").notNull(),
+  videoKey: varchar("video_key"),
   chapterId: uuid("chapter_id")
     .references(() => ChapterTable.id, { onDelete: "cascade" })
     .notNull(),

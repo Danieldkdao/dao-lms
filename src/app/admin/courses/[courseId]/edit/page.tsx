@@ -39,7 +39,7 @@ const CourseEditSuspense = async ({ params }: CourseEditParamsType) => {
         <span className="text-primary underline">{course.title}</span>
       </h1>
       <Tabs>
-        <TabsList className="w-full" defaultValue="basic-info">
+        <TabsList className="w-full" defaultValue="basic-info" defaultChecked>
           <TabsTrigger value="basic-info">Basic Info</TabsTrigger>
           <TabsTrigger value="course-structure">Course Structure</TabsTrigger>
         </TabsList>
@@ -47,7 +47,7 @@ const CourseEditSuspense = async ({ params }: CourseEditParamsType) => {
           <CourseBasicInfo course={course} />
         </TabsContent>
         <TabsContent value="course-structure">
-          <CourseStructure course={course} />
+          <CourseStructure course={course} chapters={course.chapters} />
         </TabsContent>
       </Tabs>
     </div>
