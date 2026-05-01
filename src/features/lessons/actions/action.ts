@@ -8,9 +8,10 @@ import {
 } from "@/lib/auth/constants";
 import z from "zod";
 import { db } from "@/db/db";
-import { LessonTable } from "@/db/schema";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { ChapterTable, LessonTable } from "@/db/schema";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { insertLesson } from "../db/lessons";
+import { revalidateCourseCache } from "@/features/courses/db/cache/courses";
 
 export const createLesson = async (
   courseId: string,
@@ -38,6 +39,70 @@ export const createLesson = async (
     error: false,
     message: "Lesson created successfully!",
   };
+};
+
+export const deleteLesson = async (chapterId: string, lessonId: string) => {
+  if (!(await requireAdminPermission())) {
+    return {
+      error: true,
+      message: NO_PERMISSION_MESSAGE,
+    };
+  }
+
+  const [existingChapter] = await db
+    .select()
+    .from(ChapterTable)
+    .where(eq(ChapterTable.id, chapterId));
+
+  if (!existingChapter) {
+    return {
+      error: false,
+      message: "Chapter not found.",
+    };
+  }
+
+  try {
+    const deletedLesson = await db.transaction(async (tx) => {
+      const [deletedLesson] = await tx
+        .delete(LessonTable)
+        .where(
+          and(
+            eq(LessonTable.id, lessonId),
+            eq(LessonTable.chapterId, existingChapter.id),
+          ),
+        )
+        .returning();
+
+      revalidateCourseCache(existingChapter.courseId);
+
+      await tx
+        .update(LessonTable)
+        .set({
+          position: sql`${LessonTable.position} - 1`,
+        })
+        .where(
+          and(
+            eq(LessonTable.chapterId, chapterId),
+            gt(LessonTable.position, deletedLesson.position),
+          ),
+        );
+
+      return deletedLesson;
+    });
+    if (!deletedLesson) {
+      throw new Error("DB Error");
+    }
+
+    return {
+      error: false,
+      message: "Lesson deleted successfully!",
+    };
+  } catch (error) {
+    return {
+      error: true,
+      message: "Failed to delete lesson. Please try again.",
+    };
+  }
 };
 
 export const reorderLessons = async (
