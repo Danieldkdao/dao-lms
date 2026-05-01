@@ -1,6 +1,6 @@
 "use client";
 
-import { LessonTable } from "@/db/schema";
+import { ChapterTable, LessonTable } from "@/db/schema";
 import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react";
 import { isSortableOperation } from "@dnd-kit/react/sortable";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -25,10 +25,10 @@ const moveItem = <T,>(items: T[], from: number, to: number) => {
 };
 
 export const ChapterLessonsDnd = ({
-  chapterId,
+  chapter,
   lessons,
 }: {
-  chapterId: string;
+  chapter: typeof ChapterTable.$inferSelect;
   lessons: Lesson[];
 }) => {
   const [orderedLessons, setOrderedLessons] = useState(lessons);
@@ -41,12 +41,12 @@ export const ChapterLessonsDnd = ({
 
   const handleReorderLessons = useCallback(
     async (orderedLessons: Lesson[]) => {
-      const response = await reorderLessons(chapterId, orderedLessons);
+      const response = await reorderLessons(chapter.id, orderedLessons);
       if (response.error) {
         toast.error(response.message);
       }
     },
-    [chapterId],
+    [chapter.id],
   );
 
   useEffect(() => {
@@ -100,6 +100,7 @@ export const ChapterLessonsDnd = ({
           <SortableLesson
             key={lesson.id}
             lesson={lesson}
+            chapter={chapter}
             setDisabled={setDisabled}
             index={index}
           />

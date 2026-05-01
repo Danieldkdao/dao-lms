@@ -8,10 +8,53 @@ import {
 } from "@/lib/auth/constants";
 import z from "zod";
 import { db } from "@/db/db";
-import { ChapterTable, LessonTable } from "@/db/schema";
+import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
 import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { insertLesson } from "../db/lessons";
 import { revalidateCourseCache } from "@/features/courses/db/cache/courses";
+import { revalidateLessonCache } from "../db/cache/lessons";
+
+export const getLesson = async (
+  courseId: string,
+  chapterId: string,
+  lessonId: string,
+) => {
+  if (!(await requireAdminPermission())) return null;
+
+  const [existingCourse] = await db
+    .select()
+    .from(CourseTable)
+    .where(eq(CourseTable.id, courseId));
+  if (!existingCourse) return null;
+
+  const [existingChapter] = await db
+    .select()
+    .from(ChapterTable)
+    .where(
+      and(
+        eq(ChapterTable.courseId, existingCourse.id),
+        eq(ChapterTable.id, chapterId),
+      ),
+    );
+  if (!existingChapter) return null;
+
+  const [existingLesson] = await db
+    .select()
+    .from(LessonTable)
+    .where(
+      and(
+        eq(LessonTable.chapterId, existingChapter.id),
+        eq(LessonTable.id, lessonId),
+      ),
+    );
+  if (!existingLesson) return null;
+
+  return {
+    lesson: existingLesson,
+    chapter: existingChapter,
+    course: existingCourse,
+  };
+};
 
 export const createLesson = async (
   courseId: string,
@@ -74,6 +117,7 @@ export const deleteLesson = async (chapterId: string, lessonId: string) => {
         .returning();
 
       revalidateCourseCache(existingChapter.courseId);
+      revalidateLessonCache(deletedLesson.id);
 
       await tx
         .update(LessonTable)

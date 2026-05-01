@@ -108,10 +108,7 @@ export const SortableChapter = ({
         <CollapsibleContent>
           <div className="p-2 space-y-4">
             {chapter.lessons.length ? (
-              <ChapterLessonsDnd
-                lessons={chapter.lessons}
-                chapterId={chapter.id}
-              />
+              <ChapterLessonsDnd lessons={chapter.lessons} chapter={chapter} />
             ) : (
               <div className="border-2 border-dashed rounded-md p-5 flex flex-col items-center gap-2 justify-center w-full">
                 <BookOpenTextIcon />

@@ -1,4 +1,4 @@
-import { getCourseTag, getGlobalTag } from "@/lib/data-cache";
+import { getIdTag, getGlobalTag } from "@/lib/data-cache";
 import { revalidateTag } from "next/cache";
 
 export const getCourseGlobalTag = () => {
@@ -6,7 +6,7 @@ export const getCourseGlobalTag = () => {
 };
 
 export const getCourseIdTag = (courseId: string) => {
-  return getCourseTag(courseId);
+  return getIdTag("courses", courseId);
 };
 
 export const revalidateCourseCache = (courseId: string) => {

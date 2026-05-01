@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LessonTable } from "@/db/schema";
+import { ChapterTable, LessonTable } from "@/db/schema";
 import { useConfirm } from "@/hooks/use-confirm";
 import { cn } from "@/lib/utils";
 import { useSortable } from "@dnd-kit/react/sortable";
@@ -10,12 +10,15 @@ import { deleteLesson } from "../actions/action";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Setter } from "@/lib/types";
+import Link from "next/link";
 
 export const SortableLesson = ({
+  chapter,
   lesson,
   setDisabled,
   index,
 }: {
+  chapter: typeof ChapterTable.$inferSelect;
   lesson: typeof LessonTable.$inferSelect;
   setDisabled: Setter<boolean>;
   index: number;
@@ -48,27 +51,32 @@ export const SortableLesson = ({
   return (
     <>
       <ConfirmationDialog />
+
       <div
         ref={ref}
         className={cn(
-          "rounded-md transition-opacity border p-2 flex items-center justify-between",
+          "rounded-md transition-opacity border p-2 flex items-center",
           isDragSource && "opacity-60",
         )}
       >
-        <div className="flex items-center gap-2">
-          <button
-            ref={handleRef}
-            type="button"
-            className="cursor-grab touch-none active:cursor-grabbing"
-            aria-label="Drag chapter"
-          >
-            <GripVerticalIcon className="text-muted-foreground size-4" />
-          </button>
+        <Link
+          href={`/admin/courses/${chapter.courseId}/${chapter.id}/${lesson.id}`}
+          className="w-full"
+        >
+          <div className="flex items-center gap-2 flex-1">
+            <button
+              ref={handleRef}
+              type="button"
+              className="cursor-grab touch-none active:cursor-grabbing"
+              aria-label="Drag chapter"
+            >
+              <GripVerticalIcon className="text-muted-foreground size-4" />
+            </button>
 
-          <FileTextIcon className="text-muted-foreground size-4" />
-          <span className="text-base">{lesson.name}</span>
-        </div>
-
+            <FileTextIcon className="text-muted-foreground size-4" />
+            <span className="text-base line-clamp-1">{lesson.name}</span>
+          </div>
+        </Link>
         <Button
           type="button"
           variant="ghost"
