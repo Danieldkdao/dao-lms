@@ -5,7 +5,7 @@ import { relations } from "drizzle-orm";
 
 export const LessonTable = pgTable("lessons", {
   id,
-  title: varchar("title").notNull(),
+  name: varchar("name").notNull(),
   description: text("description"),
   position: integer("position").notNull(),
   videoKey: varchar("video_key"),

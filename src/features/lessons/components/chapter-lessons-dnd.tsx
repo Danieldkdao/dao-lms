@@ -1,16 +1,13 @@
 "use client";
 
-import { ChapterTable, LessonTable } from "@/db/schema";
+import { LessonTable } from "@/db/schema";
 import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react";
 import { isSortableOperation } from "@dnd-kit/react/sortable";
 import { useEffect, useState } from "react";
-import { SortableChapter } from "./sortable-chapter";
-import { reorderChapters } from "../actions/actions";
 import { toast } from "sonner";
+import { SortableLesson } from "./sortable-lesson";
 
-type ChapterWithLessons = typeof ChapterTable.$inferSelect & {
-  lessons: (typeof LessonTable.$inferSelect)[];
-};
+type Lesson = typeof LessonTable.$inferSelect;
 
 const moveItem = <T,>(items: T[], from: number, to: number) => {
   const nextItems = [...items];
@@ -25,22 +22,22 @@ const moveItem = <T,>(items: T[], from: number, to: number) => {
   return nextItems;
 };
 
-export const CourseChaptersDnd = ({
-  courseId,
-  chapters,
+export const ChapterLessonsDnd = ({
+  chapterId,
+  lessons,
 }: {
-  courseId: string;
-  chapters: ChapterWithLessons[];
+  chapterId: string;
+  lessons: Lesson[];
 }) => {
-  const [orderedChapters, setOrderedChapters] = useState(chapters);
+  const [orderedLessons, setOrderedLessons] = useState(lessons);
 
   useEffect(() => {
-    setOrderedChapters(chapters);
-  }, [chapters]);
+    setOrderedLessons(lessons);
+  }, [lessons]);
 
-  useEffect(() => {
-    handleReorderChapters(orderedChapters);
-  }, [orderedChapters]);
+  // useEffect(() => {
+  //   handleReorderChapters(orderedChapters);
+  // }, [orderedChapters]);
 
   const handleDragEnd: DragEndEvent = async (event) => {
     if (event.canceled) {
@@ -63,27 +60,27 @@ export const CourseChaptersDnd = ({
       return;
     }
 
-    setOrderedChapters((currentChapters) =>
+    setOrderedLessons((currentChapters) =>
       moveItem(currentChapters, initialIndex, index),
     );
   };
 
-  const handleReorderChapters = async (orderChapters: ChapterWithLessons[]) => {
-    const response = await reorderChapters(courseId, orderChapters);
-    if (response.error) {
-      toast.error(response.message);
-      console.log;
-    }
-  };
+  // const handleReorderChapters = async (orderChapters: ChapterWithLessons[]) => {
+  //   const response = await reorderChapters(courseId, orderChapters);
+  //   if (response.error) {
+  //     toast.error(response.message);
+  //     console.log;
+  //   }
+  // };
 
   return (
     <DragDropProvider onDragEnd={handleDragEnd}>
       <div className="flex flex-col gap-2">
-        {orderedChapters.map((chapter, index) => (
-          <SortableChapter
-            key={chapter.id}
-            chapter={chapter}
-            courseId={courseId}
+        {orderedLessons.map((lesson, index) => (
+          <SortableLesson
+            key={lesson.id}
+            lesson={lesson}
+            chapterId={chapterId}
             index={index}
           />
         ))}
