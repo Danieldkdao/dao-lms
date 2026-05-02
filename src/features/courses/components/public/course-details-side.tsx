@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { CourseTable } from "@/db/schema";
 import {
@@ -8,8 +10,7 @@ import {
   LayoutDashboardIcon,
 } from "lucide-react";
 import { formatCourseCategory, formatCourseLevel } from "../../lib/formatters";
-import { Button } from "@/components/ui/button";
-import { LoadingSwap } from "@/components/ui/loading-swap";
+import { EnrollCourseButton } from "./enroll-course-button";
 
 export const CourseDetailsSide = ({
   course,
@@ -88,9 +89,7 @@ export const CourseDetailsSide = ({
           </div>
         </div>
         <div className="space-y-2">
-          <Button className="w-full">
-            <LoadingSwap isLoading={false}>Enroll Now</LoadingSwap>
-          </Button>
+          <EnrollCourseButton courseId={course.id} />
           <div className="w-full flex items-center justify-center">
             <span className="text-base text-muted-foreground text-center">
               30-day money-back guarantee

@@ -7,6 +7,7 @@ import {
   index,
   pgEnum,
 } from "drizzle-orm/pg-core";
+import { EnrollmentTable } from "./enrollment";
 
 export const userRoles = ["admin", "user"] as const;
 export type UserRole = (typeof userRoles)[number];
@@ -92,6 +93,7 @@ export const verification = pgTable(
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  enrollments: many(EnrollmentTable),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

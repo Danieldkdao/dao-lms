@@ -17,6 +17,7 @@ import { cacheTag } from "next/cache";
 import { getCourseGlobalTag, getCourseIdTag } from "../db/cache/courses";
 import { asc, desc, eq } from "drizzle-orm";
 import { getDeletePresignedUrl } from "@/services/tigris/presigns";
+import { createCourseProduct } from "@/services/stripe/helpers";
 
 const deleteStorageObject = async (key?: string | null) => {
   if (!key) return;
@@ -43,7 +44,18 @@ export const createCourse = async (unsafeData: CourseSchemaType) => {
     };
   }
 
-  await insertCourse(data);
+  const response = await createCourseProduct(data);
+  if (!response || !response.default_price) {
+    return {
+      error: true,
+      message: "Failed to create new course product.",
+    };
+  }
+
+  await insertCourse({
+    ...data,
+    stripePriceId: response.default_price.toString(),
+  });
 
   return {
     error: false,

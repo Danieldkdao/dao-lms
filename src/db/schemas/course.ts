@@ -2,6 +2,7 @@ import { integer, pgEnum, pgTable, text, varchar } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "../helpers";
 import { relations } from "drizzle-orm";
 import { ChapterTable } from "./chapter";
+import { EnrollmentTable } from "./enrollment";
 
 export const courseCategories = [
   "development",
@@ -38,10 +39,12 @@ export const CourseTable = pgTable("courses", {
   duration: integer("duration").notNull(),
   price: integer("price").notNull(),
   status: courseStatusEnum("status").notNull(),
+  stripePriceId: varchar("stripe_price_id").notNull(),
   createdAt,
   updatedAt,
 });
 
 export const courseRelations = relations(CourseTable, ({ many }) => ({
   chapters: many(ChapterTable),
+  enrollments: many(EnrollmentTable),
 }));

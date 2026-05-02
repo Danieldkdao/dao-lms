@@ -1,6 +1,6 @@
 import { UserRole } from "@/db/schema";
 
-export const isAdminRole = (role: UserRole) => {
+export const isAdminRole = (role?: UserRole | null) => {
   return role === "admin";
 };
 
