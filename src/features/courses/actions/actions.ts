@@ -28,9 +28,8 @@ export const createCourse = async (unsafeData: CourseSchemaType) => {
       message: INVALID_DATA_MESSAGE,
     };
   }
-  const { thumbnailImage, ...dataToInsert } = data;
 
-  await insertCourse(dataToInsert);
+  await insertCourse(data);
 
   return {
     error: false,
@@ -56,9 +55,8 @@ export const updateCourse = async (
       message: INVALID_DATA_MESSAGE,
     };
   }
-  const { thumbnailImage, ...dataToUpdate } = data;
 
-  await updateCourseDb(courseId, dataToUpdate);
+  await updateCourseDb(courseId, data);
 
   return {
     error: false,

@@ -8,6 +8,7 @@ export const LessonTable = pgTable("lessons", {
   name: varchar("name").notNull(),
   description: text("description"),
   position: integer("position").notNull(),
+  thumbnailKey: varchar("thumbnail_key"),
   videoKey: varchar("video_key"),
   chapterId: uuid("chapter_id")
     .references(() => ChapterTable.id, { onDelete: "cascade" })

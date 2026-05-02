@@ -1,44 +1,121 @@
 "use client";
 
-import { useState, useRef, useCallback, DragEvent, ChangeEvent } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  DragEvent,
+  ChangeEvent,
+  useEffect,
+} from "react";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { UploadCloudIcon, XIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, generateImageUrl } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "./ui/button";
+import { Progress } from "./ui/progress";
+import { toast } from "sonner";
 
-export type UploadDropzoneValue = {
-  file?: File;
-  url: string;
-  key?: string;
+type PresignedUrlResponse = {
+  error: boolean;
+  message: string;
+  data?: {
+    url?: string;
+  };
+};
+
+const createFileKey = (file: File, keyPrefix: string) => {
+  const safeFileName = file.name
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-");
+
+  return `${keyPrefix.replace(/\/+$/, "")}/${crypto.randomUUID()}-${safeFileName}`;
+};
+
+const uploadFileWithProgress = (
+  url: string,
+  file: File,
+  onProgress: (progress: number) => void,
+) => {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+
+      onProgress(Math.round((event.loaded / event.total) * 100));
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200 || xhr.status === 204) {
+        onProgress(100);
+        resolve();
+        return;
+      }
+
+      reject(new Error(`Upload failed with status ${xhr.status}`));
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Upload failed"));
+    };
+
+    xhr.open("PUT", url);
+
+    if (file.type) {
+      xhr.setRequestHeader("Content-Type", file.type);
+    }
+
+    xhr.send(file);
+  });
 };
 
 export const UploadDropzone = ({
-  onFilesSelected,
-  onFileDelete,
   accept = "*",
-  multiple = false,
-  values,
+  keyPrefix,
+  value,
   onChange,
+  uploadMessage = "File uploaded successfully.",
+  deleteMessage = "File deleted successfully.",
 }: {
-  onFilesSelected: (files: File[]) => Promise<void>;
-  onFileDelete: (key?: string) => Promise<void>;
   accept?: string;
-  multiple?: boolean;
-  values: UploadDropzoneValue[];
-  onChange: (files: File[]) => void;
+  keyPrefix: string;
+  value?: string | null;
+  onChange: (key: string) => void;
+  uploadMessage?: string;
+  deleteMessage?: string;
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState("");
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileValues = values
-    .map((item) => item.file)
-    .filter((file): file is File => !!file);
+  const previewUrl = localPreviewUrl || (value ? generateImageUrl(value) : "");
+  const acceptedTypes = accept
+    .split(",")
+    .map((type) => type.trim())
+    .filter(Boolean);
+  const isVideoPreview = acceptedTypes.some((type) => type.includes("video"));
+
+  useEffect(() => {
+    if (!localPreviewUrl) return;
+
+    return () => URL.revokeObjectURL(localPreviewUrl);
+  }, [localPreviewUrl]);
+
+  useEffect(() => {
+    if (!value) return;
+
+    setLocalPreviewUrl("");
+  }, [value]);
 
   const validateFiles = useCallback(
     (files: File[]) => {
-      if (!multiple && files.length > 1) {
+      if (files.length > 1) {
         setError("Only one file is allowed.");
         return false;
       }
@@ -46,7 +123,11 @@ export const UploadDropzone = ({
         const allowedTypes = accept.split(",").map((t) => t.trim());
         const allValid = Array.from(files).every((file) =>
           allowedTypes.some(
-            (type) => file.type === type || file.name.endsWith(type),
+            (type) =>
+              file.type === type ||
+              (type.endsWith("/*") &&
+                file.type.startsWith(type.replace("/*", "/"))) ||
+              file.name.toLowerCase().endsWith(type.toLowerCase()),
           ),
         );
         if (!allValid) {
@@ -57,21 +138,63 @@ export const UploadDropzone = ({
       setError("");
       return true;
     },
-    [accept, multiple],
+    [accept],
   );
 
   const handleFiles = useCallback(
     async (files: File[]) => {
       const fileArray = Array.from(files);
+      const fileToUpload = fileArray[0];
+
+      if (!fileToUpload) return;
       if (!validateFiles(fileArray)) return;
+
+      const key = createFileKey(fileToUpload, keyPrefix);
+      const objectUrl = URL.createObjectURL(fileToUpload);
+      setLocalPreviewUrl(objectUrl);
+      setIsUploading(true);
+      setUploadProgress(0);
+
       try {
-        await onFilesSelected(fileArray);
-      } catch {
-        return;
+        const presignedResponse = await fetch("/api/s3/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key }),
+        });
+
+        const presignedPayload =
+          (await presignedResponse.json()) as PresignedUrlResponse;
+        const presignedUrl = presignedPayload.data?.url;
+
+        if (!presignedResponse.ok || presignedPayload.error || !presignedUrl) {
+          throw new Error(
+            presignedPayload.message || "Failed to get upload URL.",
+          );
+        }
+
+        await uploadFileWithProgress(
+          presignedUrl,
+          fileToUpload,
+          setUploadProgress,
+        );
+
+        onChange(key);
+        toast.success(uploadMessage);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to upload file.";
+
+        setLocalPreviewUrl("");
+        setUploadProgress(0);
+        toast.error(message);
+      } finally {
+        setIsUploading(false);
+        if (inputRef.current) {
+          inputRef.current.value = "";
+        }
       }
-      onChange(fileArray);
     },
-    [validateFiles, onFilesSelected, onChange],
+    [keyPrefix, onChange, uploadMessage, validateFiles],
   );
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -103,21 +226,56 @@ export const UploadDropzone = ({
     }
   };
 
-  const handleRemoveFile = async (index: number) => {
-    try {
-      await onFileDelete(values[index]?.key);
-    } catch (error) {
-      console.error(error);
+  const handleRemoveFile = async () => {
+    if (!value) {
+      setLocalPreviewUrl("");
+      onChange("");
       return;
     }
-    const updated = fileValues.filter((_, i) => i !== index);
-    onChange(updated);
+
+    setIsDeleting(true);
+
+    try {
+      const presignedResponse = await fetch("/api/s3/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: value }),
+      });
+
+      const presignedPayload =
+        (await presignedResponse.json()) as PresignedUrlResponse;
+      const presignedUrl = presignedPayload.data?.url;
+
+      if (!presignedResponse.ok || presignedPayload.error || !presignedUrl) {
+        throw new Error(
+          presignedPayload.message || "Failed to get delete URL.",
+        );
+      }
+
+      const deleteResponse = await fetch(presignedUrl, { method: "DELETE" });
+
+      if (!deleteResponse.ok) {
+        throw new Error("Failed to delete file from storage.");
+      }
+
+      setLocalPreviewUrl("");
+      setUploadProgress(0);
+      onChange("");
+      toast.success(deleteMessage);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to delete file.";
+
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
     <div className="w-full mx-auto">
       {/* Dropzone Area */}
-      {values.length ? (
+      {previewUrl ? (
         <div
           className={cn(
             "border-2 border-dashed rounded-2xl h-60",
@@ -127,24 +285,35 @@ export const UploadDropzone = ({
           <Button
             onClick={(e) => {
               e.stopPropagation();
-              handleRemoveFile(0);
+              handleRemoveFile();
             }}
             aria-label="Remove file"
             size="icon"
             variant="destructive"
             className="absolute top-4 right-4 z-10"
             type="button"
+            disabled={isUploading || isDeleting}
           >
             <XIcon />
           </Button>
-          <div className="h-40 max-w-120 w-full rounded-sm relative">
-            <Image
-              src={values[0].url}
-              alt="Image Preview"
-              fill
-              sizes="(max-width: 48rem) calc(100vw - 5rem), 30rem"
-              className="object-cover"
-            />
+          <div className="h-40 max-w-120 w-full rounded-sm relative flex items-center justify-center">
+            {isVideoPreview ? (
+              <video
+                src={previewUrl}
+                controls
+                width={300}
+                preload="metadata"
+                style={{ borderRadius: "6px" }}
+              />
+            ) : (
+              <Image
+                src={previewUrl}
+                alt="Image Preview"
+                fill
+                sizes="(max-width: 48rem) calc(100vw - 5rem), 30rem"
+                className="object-cover"
+              />
+            )}
           </div>
         </div>
       ) : (
@@ -203,7 +372,6 @@ export const UploadDropzone = ({
               ref={inputRef}
               type="file"
               accept={accept}
-              multiple={multiple}
               className="hidden"
               onChange={handleInputChange}
             />
@@ -214,8 +382,17 @@ export const UploadDropzone = ({
       {/* Error Message */}
       {error && (
         <p className="mt-3 text-sm text-red-500 font-medium text-center">
-          ⚠️ {error}
+          {error}
         </p>
+      )}
+      {(isUploading || isDeleting) && (
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>{isUploading ? "Uploading..." : "Deleting..."}</span>
+            {isUploading && <span>{uploadProgress}%</span>}
+          </div>
+          {isUploading && <Progress value={uploadProgress} />}
+        </div>
       )}
     </div>
   );

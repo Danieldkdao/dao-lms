@@ -1,8 +1,14 @@
 "use server";
 
 import { requireAdminPermission } from "@/lib/auth/permissions";
-import { lessonSchema, LessonSchemaType } from "./schema";
 import {
+  createLessonSchema,
+  CreateLessonSchemaType,
+  lessonSchema,
+  LessonSchemaType,
+} from "./schema";
+import {
+  GENERAL_ERROR_MESSAGE,
   INVALID_DATA_MESSAGE,
   NO_PERMISSION_MESSAGE,
 } from "@/lib/auth/constants";
@@ -10,7 +16,7 @@ import z from "zod";
 import { db } from "@/db/db";
 import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
 import { and, eq, gt, inArray, sql } from "drizzle-orm";
-import { insertLesson } from "../db/lessons";
+import { insertLesson, updateLesson as updateLessonDb } from "../db/lessons";
 import { revalidateCourseCache } from "@/features/courses/db/cache/courses";
 import { revalidateLessonCache } from "../db/cache/lessons";
 
@@ -59,7 +65,7 @@ export const getLesson = async (
 export const createLesson = async (
   courseId: string,
   chapterId: string,
-  unsafeData: LessonSchemaType,
+  unsafeData: CreateLessonSchemaType,
 ) => {
   if (!(await requireAdminPermission())) {
     return {
@@ -68,7 +74,7 @@ export const createLesson = async (
     };
   }
 
-  const { data, success } = lessonSchema.safeParse(unsafeData);
+  const { data, success } = createLessonSchema.safeParse(unsafeData);
   if (!success) {
     return {
       error: true,
@@ -149,9 +155,44 @@ export const deleteLesson = async (chapterId: string, lessonId: string) => {
   }
 };
 
+export const updateLesson = async (
+  lessonId: string,
+  unsafeData: LessonSchemaType,
+) => {
+  if (!(await requireAdminPermission())) {
+    return {
+      error: true,
+      message: NO_PERMISSION_MESSAGE,
+    };
+  }
+
+  const { data, success } = lessonSchema.safeParse(unsafeData);
+  if (!success) {
+    return {
+      error: true,
+      message: INVALID_DATA_MESSAGE,
+    };
+  }
+
+  try {
+    await updateLessonDb(lessonId, data);
+
+    return {
+      error: false,
+      message: "Lesson updated successfully!",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: GENERAL_ERROR_MESSAGE,
+    };
+  }
+};
+
 export const reorderLessons = async (
   chapterId: string,
-  unsafeData: (LessonSchemaType & { id: string })[],
+  unsafeData: (CreateLessonSchemaType & { id: string })[],
 ) => {
   if (!(await requireAdminPermission())) {
     return {
@@ -161,7 +202,7 @@ export const reorderLessons = async (
   }
 
   const { data, success } = z
-    .array(lessonSchema.extend({ id: z.string().min(1) }))
+    .array(createLessonSchema.extend({ id: z.string().min(1) }))
     .safeParse(unsafeData);
   if (!success) {
     return {

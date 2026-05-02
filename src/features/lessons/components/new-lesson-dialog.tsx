@@ -9,7 +9,7 @@ import { Setter } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
-import { lessonSchema, LessonSchemaType } from "../actions/schema";
+import { createLessonSchema, CreateLessonSchemaType } from "../actions/schema";
 import { toast } from "sonner";
 import {
   Field,
@@ -39,15 +39,15 @@ export const NewLessonDialog = ({
   position,
 }: NewChapterDialogProps) => {
   const router = useRouter();
-  const form = useForm<LessonSchemaType>({
-    resolver: zodResolver(lessonSchema),
+  const form = useForm<CreateLessonSchemaType>({
+    resolver: zodResolver(createLessonSchema),
     defaultValues: {
       name: "",
       position,
     },
   });
 
-  const handleCreateLesson = async (data: LessonSchemaType) => {
+  const handleCreateLesson = async (data: CreateLessonSchemaType) => {
     const response = await createLesson(courseId, chapterId, data);
     if (response.error) {
       toast.error(response.message);

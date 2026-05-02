@@ -313,7 +313,7 @@ export const MDEditor = ({
           <EditorContent
             editor={editor}
             className={cn(
-              "bg-input dark:bg-input/30",
+              "bg-input dark:bg-input/30 max-h-250 overflow-auto",
               "[&_.ProseMirror_h1]:text-3xl [&_.ProseMirror_h1]:font-semibold [&_.ProseMirror_h1]:leading-tight",
               "[&_.ProseMirror_h2]:text-2xl [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h2]:leading-tight",
               "[&_.ProseMirror_h3]:text-xl [&_.ProseMirror_h3]:font-semibold [&_.ProseMirror_h3]:leading-tight",

@@ -1,6 +1,7 @@
 import { BackButton } from "@/components/back-button";
 import { NoPermission } from "@/components/no-permission";
 import { getLesson } from "@/features/lessons/actions/action";
+import { LessonConfiguration } from "@/features/lessons/components/edit/lesson-configuration";
 import { requireAdminPermission } from "@/lib/auth/permissions";
 import { ArrowLeftIcon } from "lucide-react";
 import { Suspense } from "react";
@@ -32,7 +33,7 @@ const CourseLessonEditSuspense = async ({ params }: CourseLessonEditProps) => {
   }
 
   return (
-    <div className="p-10">
+    <div className="p-10 flex flex-col gap-8">
       <BackButton
         href={`/admin/courses/${info.course.id}/edit`}
         size="default"
@@ -41,6 +42,7 @@ const CourseLessonEditSuspense = async ({ params }: CourseLessonEditProps) => {
         <ArrowLeftIcon className="text-muted-foreground" />
         Go Back
       </BackButton>
+      <LessonConfiguration lesson={info.lesson} />
     </div>
   );
 };
