@@ -49,14 +49,18 @@ export const AdminCourseCard = ({
                     Edit Course
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <EyeIcon />
-                  Preview
+                <DropdownMenuItem asChild>
+                  <Link href={`/courses/${course.id}`}>
+                    <EyeIcon />
+                    Preview
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive">
-                  <Trash2Icon />
-                  Delete Course
+                <DropdownMenuItem variant="destructive" asChild>
+                  <Link href={`/admin/courses/${course.id}/delete`}>
+                    <Trash2Icon />
+                    Delete Course
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -25,11 +25,7 @@ import {
   courseStatuses,
   CourseTable,
 } from "@/db/schemas/course";
-import {
-  borderRedError,
-  cn,
-  generateSlug,
-} from "@/lib/utils";
+import { borderRedError, cn, generateSlug } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon, SaveIcon } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
@@ -59,8 +55,8 @@ export const CourseForm = ({
       thumbnailKey: "",
       category: undefined,
       level: undefined,
-      duration: 0,
-      price: 0,
+      duration: undefined,
+      price: undefined,
       status: "draft",
     },
   });
@@ -257,7 +253,7 @@ export const CourseForm = ({
                   className={borderRedError(fieldState.error)}
                   min={0}
                   step={1}
-                  value={value ?? ""}
+                  value={value || ""}
                   onChange={(e) =>
                     Number.isNaN(e.target.value)
                       ? undefined
@@ -283,7 +279,7 @@ export const CourseForm = ({
                   className={borderRedError(fieldState.error)}
                   min={0}
                   step={1}
-                  value={value ?? ""}
+                  value={value || ""}
                   onChange={(e) =>
                     Number.isNaN(e.target.value)
                       ? undefined

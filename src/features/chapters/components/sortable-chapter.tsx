@@ -102,7 +102,7 @@ export const SortableChapter = ({
 
             <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer group flex-1">
               <ChevronDownIcon className="text-muted-foreground size-4 group-data-[state=open]:rotate-180 transition-transform duration-300" />
-              <span className="text-base">{chapter.name}</span>
+              <span className="text-base line-clamp-1">{chapter.name}</span>
             </CollapsibleTrigger>
           </div>
 

@@ -1,20 +1,12 @@
 import { NoPermission } from "@/components/no-permission";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCourse } from "@/features/courses/actions/actions";
+import { CourseNotFound } from "@/features/courses/components/course-not-found";
 import { CourseBasicInfo } from "@/features/courses/components/edit/course-basic-info";
 import { CourseStructure } from "@/features/courses/components/edit/course-structure";
 import { requireAdminPermission } from "@/lib/auth/permissions";
-import { SearchXIcon } from "lucide-react";
-import Link from "next/link";
 import { Suspense } from "react";
 
 type CourseEditParamsType = {
@@ -65,29 +57,6 @@ const CourseEditLoading = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
-};
-
-const CourseNotFound = () => {
-  return (
-    <div className="p-10">
-      <Card className="mx-auto max-w-xl">
-        <CardHeader className="items-center text-center">
-          <div className="bg-muted text-muted-foreground flex size-12 items-center justify-center rounded-full">
-            <SearchXIcon className="size-6" />
-          </div>
-          <CardTitle>Course not found</CardTitle>
-          <CardDescription>
-            This course may have been deleted or the link may be incorrect.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <Button asChild variant="outline">
-            <Link href="/admin/courses">Back to courses</Link>
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   );
 };

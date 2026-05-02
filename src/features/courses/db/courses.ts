@@ -24,3 +24,14 @@ export const updateCourse = async (
 
   revalidateCourseCache(updatedCourse.id);
 };
+
+export const deleteCourse = async (courseId: string) => {
+  const [deletedCourse] = await db
+    .delete(CourseTable)
+    .where(eq(CourseTable.id, courseId))
+    .returning();
+
+  revalidateCourseCache(deletedCourse.id);
+
+  return deletedCourse;
+};

@@ -6,12 +6,25 @@ import {
   INVALID_DATA_MESSAGE,
   NO_PERMISSION_MESSAGE,
 } from "@/lib/auth/constants";
-import { insertCourse, updateCourse as updateCourseDb } from "../db/courses";
+import {
+  insertCourse,
+  updateCourse as updateCourseDb,
+  deleteCourse as deleteCourseDb,
+} from "../db/courses";
 import { db } from "@/db/db";
 import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
 import { cacheTag } from "next/cache";
 import { getCourseGlobalTag, getCourseIdTag } from "../db/cache/courses";
 import { asc, desc, eq } from "drizzle-orm";
+import { getDeletePresignedUrl } from "@/services/tigris/presigns";
+
+const deleteStorageObject = async (key: string) => {
+  const presignedUrl = await getDeletePresignedUrl(key);
+
+  if (presignedUrl) {
+    await fetch(presignedUrl, { method: "DELETE" });
+  }
+};
 
 export const createCourse = async (unsafeData: CourseSchemaType) => {
   if (!(await requireAdminPermission())) {
@@ -61,6 +74,42 @@ export const updateCourse = async (
   return {
     error: false,
     message: "Course updated successfully!",
+  };
+};
+
+export const deleteCourse = async (courseId: string) => {
+  if (!(await requireAdminPermission())) {
+    return {
+      error: true,
+      message: NO_PERMISSION_MESSAGE,
+    };
+  }
+
+  const [existingCourse] = await db
+    .select()
+    .from(CourseTable)
+    .where(eq(CourseTable.id, courseId));
+  if (!existingCourse) {
+    return {
+      error: true,
+      message: "Course not found.",
+    };
+  }
+
+  try {
+    await deleteStorageObject(existingCourse.thumbnailKey);
+    await deleteCourseDb(courseId);
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: "Failed to delete course. Please try again.",
+    };
+  }
+
+  return {
+    error: false,
+    message: "Course deleted successfully!",
   };
 };
 

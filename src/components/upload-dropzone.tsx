@@ -16,14 +16,7 @@ import Image from "next/image";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { toast } from "sonner";
-
-type PresignedUrlResponse = {
-  error: boolean;
-  message: string;
-  data?: {
-    url?: string;
-  };
-};
+import { PresignedUrlResponse } from "@/features/courses/lib/types";
 
 const createFileKey = (file: File, keyPrefix: string) => {
   const safeFileName = file.name

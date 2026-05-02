@@ -240,8 +240,7 @@ export const reorderLessons = async (
       .returning();
 
     if (!response || !response.length) {
-      console.log(response);
-      throw new Error("DB Error");
+      throw new Error(JSON.stringify(response));
     }
   } catch (error) {
     console.error(error);

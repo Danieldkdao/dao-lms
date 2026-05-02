@@ -9,10 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Setter } from "@/lib/types";
 import { Controller, useForm } from "react-hook-form";
-import {
-  chapterSchema,
-  ChapterSchemaType,
-} from "../actions/schema";
+import { chapterSchema, ChapterSchemaType } from "../actions/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Field,
