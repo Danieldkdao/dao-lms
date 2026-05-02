@@ -24,18 +24,44 @@ import {
   BellIcon,
   LogOutIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSyncExternalStore } from "react";
+import { toast } from "sonner";
+
+const useAuthSession = () => {
+  return useSyncExternalStore(
+    (callback) => authClient.useSession.subscribe(() => callback()),
+    () => authClient.useSession.get(),
+    () => authClient.useSession.get(),
+  );
+};
 
 export function NavUser() {
   const { isMobile } = useSidebar();
-  const { data: session } = authClient.useSession.get();
+  const router = useRouter();
+  const { data: session, isPending } = useAuthSession();
 
-  const name = session?.user.name ?? "Unknown";
+  const name = session?.user.name ?? (isPending ? "Loading..." : "Unknown");
   const image = session?.user.image ?? undefined;
+  const email = session?.user.email ?? "";
   const initials = name
     .split(" ")
     .map((part) => part[0].toUpperCase())
     .slice(0, 2)
     .join("");
+
+  const handleLogout = () => {
+    authClient
+      .signOut()
+      .then(() => {
+        toast.success("Logged out successfully.");
+        router.push("/");
+        router.refresh();
+      })
+      .catch(() => {
+        toast.error("Failed to log out. Please try again.");
+      });
+  };
 
   return (
     <SidebarMenu>
@@ -50,7 +76,7 @@ export function NavUser() {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium text-base">{name}</span>
                 <span className="truncate text-sm text-muted-foreground">
-                  {session?.user.email}
+                  {email}
                 </span>
               </div>
               <EllipsisVerticalIcon className="ml-auto size-4" />
@@ -73,7 +99,7 @@ export function NavUser() {
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{name}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {session?.user.email}
+                    {email}
                   </span>
                 </div>
               </div>
@@ -94,7 +120,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleLogout}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>
