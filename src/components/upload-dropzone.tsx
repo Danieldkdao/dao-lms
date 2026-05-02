@@ -70,13 +70,15 @@ export const UploadDropzone = ({
   keyPrefix,
   value,
   onChange,
+  emptyValue = "",
   uploadMessage = "File uploaded successfully.",
   deleteMessage = "File deleted successfully.",
 }: {
   accept?: string;
   keyPrefix: string;
   value?: string | null;
-  onChange: (key: string) => void;
+  onChange: (key: string | null) => void;
+  emptyValue?: "" | null;
   uploadMessage?: string;
   deleteMessage?: string;
 }) => {
@@ -222,7 +224,7 @@ export const UploadDropzone = ({
   const handleRemoveFile = async () => {
     if (!value) {
       setLocalPreviewUrl("");
-      onChange("");
+      onChange(emptyValue);
       return;
     }
 
@@ -253,7 +255,7 @@ export const UploadDropzone = ({
 
       setLocalPreviewUrl("");
       setUploadProgress(0);
-      onChange("");
+      onChange(emptyValue);
       toast.success(deleteMessage);
     } catch (error) {
       const message =

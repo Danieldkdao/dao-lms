@@ -1,5 +1,9 @@
 import z from "zod";
 
+const nullableAssetKey = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((value) => (value === undefined || value === "" ? null : value));
+
 export const createLessonSchema = z.object({
   name: z
     .string()
@@ -22,11 +26,8 @@ export const lessonSchema = z.object({
     .string()
     .trim()
     .min(20, { error: "Please enter a description for this lesson." }),
-  thumbnailKey: z
-    .string()
-    .min(1, { error: "Please upload a thumbnail image for the course." }),
-  videoKey: z
-    .string()
-    .min(1, { error: "Please upload a video for the course." }),
+  thumbnailKey: nullableAssetKey,
+  videoKey: nullableAssetKey,
 });
-export type LessonSchemaType = z.infer<typeof lessonSchema>;
+export type LessonSchemaInputType = z.input<typeof lessonSchema>;
+export type LessonSchemaType = z.output<typeof lessonSchema>;

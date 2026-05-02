@@ -18,7 +18,8 @@ import { getCourseGlobalTag, getCourseIdTag } from "../db/cache/courses";
 import { asc, desc, eq } from "drizzle-orm";
 import { getDeletePresignedUrl } from "@/services/tigris/presigns";
 
-const deleteStorageObject = async (key: string) => {
+const deleteStorageObject = async (key?: string | null) => {
+  if (!key) return;
   const presignedUrl = await getDeletePresignedUrl(key);
 
   if (presignedUrl) {
@@ -96,7 +97,25 @@ export const deleteCourse = async (courseId: string) => {
     };
   }
 
+  const chapters = await db.query.ChapterTable.findMany({
+    where: eq(CourseTable.id, existingCourse.id),
+    with: {
+      lessons: true,
+    },
+  });
+
+  const lessons = chapters
+    .flatMap((chapter) => chapter.lessons)
+    .flatMap((lesson) => [
+      deleteStorageObject(lesson.thumbnailKey),
+      deleteStorageObject(lesson.videoKey),
+    ])
+    .filter(Boolean);
+
   try {
+    if (lessons.length) {
+      await Promise.all(lessons);
+    }
     await deleteStorageObject(existingCourse.thumbnailKey);
     await deleteCourseDb(courseId);
   } catch (error) {

@@ -1,7 +1,11 @@
 "use client";
 
 import { Controller, useForm } from "react-hook-form";
-import { lessonSchema, LessonSchemaType } from "../../actions/schema";
+import {
+  lessonSchema,
+  LessonSchemaInputType,
+  LessonSchemaType,
+} from "../../actions/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LessonTable } from "@/db/schema";
 import {
@@ -29,18 +33,22 @@ export const LessonConfigForm = ({
   lesson: typeof LessonTable.$inferSelect;
 }) => {
   const router = useRouter();
-  const form = useForm<LessonSchemaType>({
+  const form = useForm<LessonSchemaInputType, unknown, LessonSchemaType>({
     resolver: zodResolver(lessonSchema),
     defaultValues: {
       name: lesson.name,
       description: lesson.description ?? "",
-      thumbnailKey: lesson.thumbnailKey ?? undefined,
-      videoKey: lesson.videoKey ?? undefined,
+      thumbnailKey: lesson.thumbnailKey ?? null,
+      videoKey: lesson.videoKey ?? null,
     },
   });
 
   const handleUpdateLesson = async (data: LessonSchemaType) => {
-    const response = await updateLesson(courseId, lesson.id, data);
+    const response = await updateLesson(courseId, lesson.id, {
+      ...data,
+      thumbnailKey: data.thumbnailKey ?? null,
+      videoKey: data.videoKey ?? null,
+    });
     if (response.error) {
       toast.error(response.message);
     } else {
@@ -101,6 +109,7 @@ export const LessonConfigForm = ({
                 onChange={field.onChange}
                 keyPrefix="courses/lessons/thumbnails"
                 accept="image/png, image/jpeg, image/jpg, image/webp"
+                emptyValue={null}
                 uploadMessage="Thumbnail uploaded successfully."
                 deleteMessage="Thumbnail deleted successfully."
               />
@@ -121,6 +130,7 @@ export const LessonConfigForm = ({
                 onChange={field.onChange}
                 keyPrefix="courses/lessons/videos"
                 accept="video/mp4, video/webm"
+                emptyValue={null}
                 uploadMessage="Video uploaded successfully."
                 deleteMessage="Video deleted successfully."
               />

@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
+// todo: might need to put this in its own hook
 const useAuthSession = () => {
   return useSyncExternalStore(
     (callback) => authClient.useSession.subscribe(() => callback()),
