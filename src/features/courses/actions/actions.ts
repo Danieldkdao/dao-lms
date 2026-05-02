@@ -113,7 +113,7 @@ export const deleteCourse = async (courseId: string) => {
   };
 };
 
-export const getCourses = async () => {
+export const getAdminCourses = async () => {
   "use cache";
   cacheTag(getCourseGlobalTag());
 
@@ -121,6 +121,18 @@ export const getCourses = async () => {
     .select()
     .from(CourseTable)
     .orderBy(desc(CourseTable.updatedAt), desc(CourseTable.id));
+
+  return courses;
+};
+
+export const getPublicCourses = async () => {
+  "use cache";
+  cacheTag(getCourseGlobalTag());
+
+  const courses = await db
+    .select()
+    .from(CourseTable)
+    .where(eq(CourseTable.status, "published"));
 
   return courses;
 };

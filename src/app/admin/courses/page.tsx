@@ -2,7 +2,7 @@ import { NoPermission } from "@/components/no-permission";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCourses } from "@/features/courses/actions/actions";
+import { getAdminCourses } from "@/features/courses/actions/actions";
 import { AdminCourseCard } from "@/features/courses/components/admin-course.card";
 import { requireAdminPermission } from "@/lib/auth/permissions";
 import Link from "next/link";
@@ -66,7 +66,7 @@ const AdminCoursesSuspense = async () => {
   if (!(await requireAdminPermission())) {
     return <NoPermission />;
   }
-  const courses = await getCourses();
+  const courses = await getAdminCourses();
 
   return (
     <div className="grid grid-cols-1 gap-8 @lg:grid-cols-2">
