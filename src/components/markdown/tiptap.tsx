@@ -22,7 +22,7 @@ import {
   Undo2Icon,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -33,6 +33,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import {
+  htmlToMarkdown,
+  looksLikeHtml,
+  markdownToHtml,
+  tiptapJsonToMarkdown,
+} from "./markdown-utils";
 
 type TiptapProps = {
   value?: string;
@@ -247,9 +253,15 @@ export const MDEditor = ({
   className,
   editorClassName,
 }: TiptapProps) => {
+  const markdownValue = useMemo(() => {
+    if (!value) return "";
+
+    return looksLikeHtml(value) ? htmlToMarkdown(value) : value;
+  }, [value]);
+
   const editor = useEditor({
     extensions: [StarterKit],
-    content: value,
+    content: markdownToHtml(markdownValue),
     editable: !disabled,
     immediatelyRender: false,
     editorProps: {
@@ -258,7 +270,7 @@ export const MDEditor = ({
       },
     },
     onUpdate: ({ editor }) => {
-      onChange?.(editor.getHTML());
+      onChange?.(tiptapJsonToMarkdown(editor.getJSON()));
     },
   });
 
@@ -269,10 +281,15 @@ export const MDEditor = ({
   }, [disabled, editor]);
 
   useEffect(() => {
-    if (!editor || value === undefined || value === editor.getHTML()) return;
+    if (!editor) return;
 
-    editor.commands.setContent(value, { emitUpdate: false });
-  }, [editor, value]);
+    const currentMarkdown = tiptapJsonToMarkdown(editor.getJSON());
+    if (markdownValue === currentMarkdown) return;
+
+    editor.commands.setContent(markdownToHtml(markdownValue), {
+      emitUpdate: false,
+    });
+  }, [editor, markdownValue]);
 
   return (
     <TooltipProvider>

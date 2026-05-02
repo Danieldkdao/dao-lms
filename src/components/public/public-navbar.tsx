@@ -8,7 +8,7 @@ import { Suspense } from "react";
 
 export const PublicNavbar = () => {
   return (
-    <header className="border-b bg-background/80 backdrop-blur-md sticky top-0">
+    <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-100">
       <div className="mx-auto flex h-20 w-full max-w-[1500px] items-center justify-between px-6">
         <div className="flex items-center gap-8">
           <Link href="/" aria-label="DaoLMS home">

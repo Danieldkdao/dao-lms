@@ -3,7 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SearchXIcon } from "lucide-react";
 import Link from "next/link";
 
-export const CourseNotFound = () => {
+export const CourseNotFound = ({
+  href = "/admin/courses",
+}: {
+  href?: string;
+}) => {
   return (
     <div className="p-10">
       <Card className="mx-auto max-w-xl">
@@ -19,7 +23,7 @@ export const CourseNotFound = () => {
               This course may have been deleted or the link may be incorrect.
             </p>
             <Button asChild variant="outline" className="mt-4">
-              <Link href="/admin/courses">Back to courses</Link>
+              <Link href={href}>Back to courses</Link>
             </Button>
           </div>
         </CardContent>
