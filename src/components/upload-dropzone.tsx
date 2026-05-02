@@ -272,7 +272,7 @@ export const UploadDropzone = ({
         <div
           className={cn(
             "border-2 border-dashed rounded-2xl h-60",
-            "border-input bg-input dark:bg-input/30 hover:bg-input/10 dark:hover:bg-input/40 p-10 flex items-center justify-center relative",
+            "border-input bg-tranparent dark:bg-input/30 hover:bg-input/10 dark:hover:bg-input/40 p-10 flex items-center justify-center relative",
           )}
         >
           <Button
