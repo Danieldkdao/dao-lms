@@ -18,6 +18,7 @@ export const insertLesson = async (
 };
 
 export const updateLesson = async (
+  courseId: string,
   lessonId: string,
   data: Partial<typeof LessonTable.$inferSelect>,
 ) => {
@@ -27,5 +28,6 @@ export const updateLesson = async (
     .where(eq(LessonTable.id, lessonId))
     .returning();
 
+  revalidateCourseCache(courseId);
   revalidateLessonCache(updatedLesson.id);
 };

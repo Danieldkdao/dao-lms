@@ -1,12 +1,20 @@
 "use server";
 
 import { requireAdminPermission } from "@/lib/auth/permissions";
-import { chapterSchema, ChapterSchemaType } from "./schema";
+import {
+  chapterSchema,
+  ChapterSchemaType,
+  updateChapterSchema,
+  UpdateChapterSchemaType,
+} from "./schema";
 import {
   INVALID_DATA_MESSAGE,
   NO_PERMISSION_MESSAGE,
 } from "@/lib/auth/constants";
-import { insertChapter } from "../db/chapters";
+import {
+  insertChapter,
+  updateChapter as updateChapterDb,
+} from "../db/chapters";
 import z from "zod";
 import { db } from "@/db/db";
 import { ChapterTable } from "@/db/schema";
@@ -32,12 +40,55 @@ export const createChapter = async (
     };
   }
 
-  await insertChapter({ ...data, courseId });
+  try {
+    await insertChapter({ ...data, courseId });
 
-  return {
-    error: false,
-    message: "Chapter created successfully!",
-  };
+    return {
+      error: false,
+      message: "Chapter created successfully!",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: "Failed to create chapter. Please try again.",
+    };
+  }
+};
+
+export const updateChapter = async (
+  chapterId: string,
+  unsafeData: UpdateChapterSchemaType,
+) => {
+  if (!(await requireAdminPermission())) {
+    return {
+      error: true,
+      message: NO_PERMISSION_MESSAGE,
+    };
+  }
+
+  const { data, success } = updateChapterSchema.safeParse(unsafeData);
+  if (!success) {
+    return {
+      error: true,
+      message: INVALID_DATA_MESSAGE,
+    };
+  }
+
+  try {
+    await updateChapterDb(chapterId, data);
+
+    return {
+      error: false,
+      message: "Chapter updated successfully!",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: "Failed to update chapter. Please try again.",
+    };
+  }
 };
 
 export const deleteChapter = async (chapterId: string) => {

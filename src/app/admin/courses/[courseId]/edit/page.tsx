@@ -108,8 +108,8 @@ const CourseEditSuspense = async ({ params }: CourseEditParamsType) => {
         Edit Course:{" "}
         <span className="text-primary underline">{course.title}</span>
       </h1>
-      <Tabs>
-        <TabsList className="w-full" defaultValue="basic-info" defaultChecked>
+      <Tabs defaultValue="basic-info">
+        <TabsList className="w-full">
           <TabsTrigger value="basic-info">Basic Info</TabsTrigger>
           <TabsTrigger value="course-structure">Course Structure</TabsTrigger>
         </TabsList>

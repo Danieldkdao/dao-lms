@@ -1,24 +1,24 @@
 "use server";
 
+import { db } from "@/db/db";
+import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
+import { revalidateCourseCache } from "@/features/courses/db/cache/courses";
+import {
+  GENERAL_ERROR_MESSAGE,
+  INVALID_DATA_MESSAGE,
+  NO_PERMISSION_MESSAGE,
+} from "@/lib/auth/constants";
 import { requireAdminPermission } from "@/lib/auth/permissions";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
+import z from "zod";
+import { revalidateLessonCache } from "../db/cache/lessons";
+import { insertLesson, updateLesson as updateLessonDb } from "../db/lessons";
 import {
   createLessonSchema,
   CreateLessonSchemaType,
   lessonSchema,
   LessonSchemaType,
 } from "./schema";
-import {
-  GENERAL_ERROR_MESSAGE,
-  INVALID_DATA_MESSAGE,
-  NO_PERMISSION_MESSAGE,
-} from "@/lib/auth/constants";
-import z from "zod";
-import { db } from "@/db/db";
-import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
-import { and, eq, gt, inArray, sql } from "drizzle-orm";
-import { insertLesson, updateLesson as updateLessonDb } from "../db/lessons";
-import { revalidateCourseCache } from "@/features/courses/db/cache/courses";
-import { revalidateLessonCache } from "../db/cache/lessons";
 
 export const getLesson = async (
   courseId: string,
@@ -156,6 +156,7 @@ export const deleteLesson = async (chapterId: string, lessonId: string) => {
 };
 
 export const updateLesson = async (
+  courseId: string,
   lessonId: string,
   unsafeData: LessonSchemaType,
 ) => {
@@ -175,7 +176,7 @@ export const updateLesson = async (
   }
 
   try {
-    await updateLessonDb(lessonId, data);
+    await updateLessonDb(courseId, lessonId, data);
 
     return {
       error: false,

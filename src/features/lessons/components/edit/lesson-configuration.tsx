@@ -11,8 +11,10 @@ import { LessonConfigForm } from "./lesson-config-form";
 import { LessonTable } from "@/db/schema";
 
 export const LessonConfiguration = ({
+  courseId,
   lesson,
 }: {
+  courseId: string;
   lesson: typeof LessonTable.$inferSelect;
 }) => {
   return (
@@ -24,7 +26,7 @@ export const LessonConfiguration = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <LessonConfigForm lesson={lesson} />
+        <LessonConfigForm courseId={courseId} lesson={lesson} />
       </CardContent>
     </Card>
   );

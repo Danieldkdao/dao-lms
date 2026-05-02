@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import {
   BookOpenTextIcon,
   ChevronDownIcon,
+  Edit2Icon,
   GripVerticalIcon,
   PlusIcon,
   Trash2Icon,
@@ -24,6 +25,7 @@ import { deleteChapter } from "../actions/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/hooks/use-confirm";
+import { NewUpdateChapterDialog } from "./new-update-chapter-dialog";
 
 export const SortableChapter = ({
   chapter,
@@ -36,7 +38,8 @@ export const SortableChapter = ({
   setDisabled: Setter<boolean>;
   index: number;
 }) => {
-  const [open, setOpen] = useState(false);
+  const [lessonOpen, setLessonOpen] = useState(false);
+  const [chapterOpen, setChapterOpen] = useState(false);
   const router = useRouter();
   const [ConfirmationDialog, confirm] = useConfirm(
     "Confirm Chapter Deletion",
@@ -65,9 +68,16 @@ export const SortableChapter = ({
   return (
     <>
       <ConfirmationDialog />
+      <NewUpdateChapterDialog
+        open={chapterOpen}
+        setOpen={setChapterOpen}
+        courseId={chapter.id}
+        position={chapter.position}
+        chapter={chapter}
+      />
       <NewLessonDialog
-        open={open}
-        setOpen={setOpen}
+        open={lessonOpen}
+        setOpen={setLessonOpen}
         courseId={chapter.courseId}
         chapterId={chapter.id}
         position={chapter.lessons.length + 1}
@@ -79,8 +89,8 @@ export const SortableChapter = ({
           isDragSource && "opacity-60",
         )}
       >
-        <div className="flex items-center justify-between group-data-[state=open]:border-b-2 p-2">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 group-data-[state=open]:border-b-2 p-2">
+          <div className="flex items-center gap-2 flex-1">
             <button
               ref={handleRef}
               type="button"
@@ -90,20 +100,30 @@ export const SortableChapter = ({
               <GripVerticalIcon className="text-muted-foreground size-4" />
             </button>
 
-            <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer group">
+            <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer group flex-1">
               <ChevronDownIcon className="text-muted-foreground size-4 group-data-[state=open]:rotate-180 transition-transform duration-300" />
               <span className="text-base">{chapter.name}</span>
             </CollapsibleTrigger>
           </div>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={handleChapterDeletion}
-          >
-            <Trash2Icon />
-          </Button>
+          <div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setChapterOpen(true)}
+            >
+              <Edit2Icon />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleChapterDeletion}
+            >
+              <Trash2Icon />
+            </Button>
+          </div>
         </div>
         <CollapsibleContent>
           <div className="p-2 space-y-4">
@@ -123,7 +143,7 @@ export const SortableChapter = ({
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => setOpen(true)}
+              onClick={() => setLessonOpen(true)}
             >
               <PlusIcon />
               New Lesson

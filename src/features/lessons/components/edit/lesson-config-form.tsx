@@ -22,8 +22,10 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export const LessonConfigForm = ({
+  courseId,
   lesson,
 }: {
+  courseId: string;
   lesson: typeof LessonTable.$inferSelect;
 }) => {
   const router = useRouter();
@@ -38,7 +40,7 @@ export const LessonConfigForm = ({
   });
 
   const handleUpdateLesson = async (data: LessonSchemaType) => {
-    const response = await updateLesson(lesson.id, data);
+    const response = await updateLesson(courseId, lesson.id, data);
     if (response.error) {
       toast.error(response.message);
     } else {

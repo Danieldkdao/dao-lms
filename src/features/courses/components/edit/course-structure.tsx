@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
 import { CourseChaptersDnd } from "@/features/chapters/components/course-chapters-dnd";
-import { NewChapterDialog } from "@/features/chapters/components/new-chapter-dialog";
+import { NewUpdateChapterDialog } from "@/features/chapters/components/new-update-chapter-dialog";
 import { FileIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -27,7 +27,7 @@ export const CourseStructure = ({
 
   return (
     <>
-      <NewChapterDialog
+      <NewUpdateChapterDialog
         open={open}
         setOpen={setOpen}
         courseId={course.id}

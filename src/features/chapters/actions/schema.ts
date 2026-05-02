@@ -12,3 +12,8 @@ export const chapterSchema = z.object({
     .min(1, { error: "Position must be a postive integer greater than 0." }),
 });
 export type ChapterSchemaType = z.infer<typeof chapterSchema>;
+
+export const updateChapterSchema = chapterSchema.omit({
+  position: true,
+});
+export type UpdateChapterSchemaType = z.infer<typeof updateChapterSchema>;

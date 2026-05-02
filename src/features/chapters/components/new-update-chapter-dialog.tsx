@@ -1,4 +1,4 @@
-"use cliet";
+"use client";
 
 import {
   Dialog,
@@ -9,7 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { Setter } from "@/lib/types";
 import { Controller, useForm } from "react-hook-form";
-import { chapterSchema, ChapterSchemaType } from "../actions/schema";
+import {
+  chapterSchema,
+  ChapterSchemaType,
+} from "../actions/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Field,
@@ -20,35 +23,53 @@ import {
 import { Input } from "@/components/ui/input";
 import { borderRedError } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { createChapter } from "../actions/actions";
+import { createChapter, updateChapter } from "../actions/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { LoadingSwap } from "@/components/ui/loading-swap";
+import { ChapterTable } from "@/db/schema";
+import { useEffect } from "react";
 
-type NewChapterDialogProps = {
+type NewUpdateChapterDialogProps = {
   open: boolean;
   setOpen: Setter<boolean>;
   courseId: string;
   position: number;
+  chapter?: typeof ChapterTable.$inferSelect;
 };
 
-export const NewChapterDialog = ({
+export const NewUpdateChapterDialog = ({
   open,
   setOpen,
   courseId,
   position,
-}: NewChapterDialogProps) => {
+  chapter,
+}: NewUpdateChapterDialogProps) => {
+  const isUpdating = !!chapter;
   const router = useRouter();
+
   const form = useForm<ChapterSchemaType>({
     resolver: zodResolver(chapterSchema),
     defaultValues: {
-      name: "",
-      position,
+      name: chapter?.name ?? "",
+      position: chapter?.position ?? position,
     },
   });
 
-  const handleCreateChapter = async (data: ChapterSchemaType) => {
-    const response = await createChapter(courseId, data);
+  useEffect(() => {
+    if (!open) return;
+
+    form.reset({
+      name: chapter?.name ?? "",
+      position: chapter?.position ?? position,
+    });
+  }, [chapter, form, open, position]);
+
+  const handleCreateUpdateChapter = async (data: ChapterSchemaType) => {
+    const action = isUpdating
+      ? updateChapter(chapter.id, { name: data.name })
+      : createChapter(courseId, data);
+    const response = await action;
     if (response.error) {
       toast.error(response.message);
     } else {
@@ -63,13 +84,17 @@ export const NewChapterDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Chapter</DialogTitle>
+          <DialogTitle>
+            {isUpdating ? "Update Chapter" : "Create New Chapter"}
+          </DialogTitle>
           <DialogDescription>
-            What would you like to name your new chapter?
+            {isUpdating
+              ? "Choosing a new name for your chapter?"
+              : "What would you like to name your new chapter?"}
           </DialogDescription>
         </DialogHeader>
         <form
-          onSubmit={form.handleSubmit(handleCreateChapter)}
+          onSubmit={form.handleSubmit(handleCreateUpdateChapter)}
           className="flex flex-col gap-2"
         >
           <Controller
@@ -91,7 +116,7 @@ export const NewChapterDialog = ({
           />
           <Button className="self-end" disabled={form.formState.isSubmitting}>
             <LoadingSwap isLoading={form.formState.isSubmitting}>
-              Create
+              {isUpdating ? "Save changes" : "Create"}
             </LoadingSwap>
           </Button>
         </form>
