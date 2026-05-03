@@ -25,10 +25,12 @@ type NavItemsType = {
 export function AppSidebar({
   navMain,
   navSecondary,
+  includeCreate,
   ...props
 }: {
   navMain: NavItemsType[];
   navSecondary: NavItemsType[];
+  includeCreate?: boolean;
 } & React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -47,7 +49,7 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain includeCreate={includeCreate} items={navMain} />
         <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

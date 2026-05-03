@@ -31,7 +31,7 @@ export const proxy = async (request: NextRequest) => {
   }
 
   if (pathname.includes("/admin") && role !== "admin") {
-    return NextResponse.redirect(new URL("/"));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();

@@ -2,6 +2,7 @@ import { integer, pgTable, text, uuid, varchar } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "../helpers";
 import { ChapterTable } from "./chapter";
 import { relations } from "drizzle-orm";
+import { LessonProgressTable } from "./lesson-progress";
 
 export const LessonTable = pgTable("lessons", {
   id,
@@ -17,9 +18,10 @@ export const LessonTable = pgTable("lessons", {
   updatedAt,
 });
 
-export const lessonRelations = relations(LessonTable, ({ one }) => ({
+export const lessonRelations = relations(LessonTable, ({ one, many }) => ({
   chapter: one(ChapterTable, {
     fields: [LessonTable.chapterId],
     references: [ChapterTable.id],
   }),
+  progress: many(LessonProgressTable),
 }));

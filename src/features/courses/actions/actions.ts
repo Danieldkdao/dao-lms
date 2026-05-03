@@ -1,23 +1,28 @@
 "use server";
 
-import { requireAdminPermission } from "@/lib/auth/permissions";
-import { courseSchema, CourseSchemaType } from "./schema";
+import { db } from "@/db/db";
+import {
+  ChapterTable,
+  CourseTable,
+  EnrollmentTable,
+  LessonTable,
+} from "@/db/schema";
 import {
   INVALID_DATA_MESSAGE,
   NO_PERMISSION_MESSAGE,
 } from "@/lib/auth/constants";
-import {
-  insertCourse,
-  updateCourse as updateCourseDb,
-  deleteCourse as deleteCourseDb,
-} from "../db/courses";
-import { db } from "@/db/db";
-import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
+import { requireAdminPermission } from "@/lib/auth/permissions";
+import { createCourseProduct } from "@/services/stripe/helpers";
+import { getDeletePresignedUrl } from "@/services/tigris/presigns";
+import { asc, desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { getCourseGlobalTag, getCourseIdTag } from "../db/cache/courses";
-import { asc, desc, eq } from "drizzle-orm";
-import { getDeletePresignedUrl } from "@/services/tigris/presigns";
-import { createCourseProduct } from "@/services/stripe/helpers";
+import {
+  deleteCourse as deleteCourseDb,
+  insertCourse,
+  updateCourse as updateCourseDb,
+} from "../db/courses";
+import { courseSchema, CourseSchemaType } from "./schema";
 
 const deleteStorageObject = async (key?: string | null) => {
   if (!key) return;
@@ -164,6 +169,27 @@ export const getPublicCourses = async () => {
     .select()
     .from(CourseTable)
     .where(eq(CourseTable.status, "published"));
+
+  return courses;
+};
+
+export const getAvailableCourses = async (userId: string) => {
+  "use cache";
+  cacheTag(getCourseGlobalTag());
+
+  const courses = await db
+    .select({
+      ...getTableColumns(CourseTable),
+    })
+    .from(CourseTable).where(sql`
+      ${CourseTable.status} = 'published'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM ${EnrollmentTable}
+        WHERE ${EnrollmentTable.courseId} = ${CourseTable.id}
+        AND ${EnrollmentTable.userId} = ${userId}
+      )
+    `);
 
   return courses;
 };

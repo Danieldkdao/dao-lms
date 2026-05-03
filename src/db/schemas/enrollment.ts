@@ -1,12 +1,13 @@
-import { pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
-import { user } from "./user";
-import { CourseTable } from "./course";
 import { relations } from "drizzle-orm";
+import { pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
+import { createdAt, id } from "../helpers";
+import { CourseTable } from "./course";
+import { user } from "./user";
 
 export const EnrollmentTable = pgTable(
   "enrollments",
   {
-    id: uuid().primaryKey().defaultRandom(),
+    id,
     userId: text("user_id")
       .references(() => user.id, { onDelete: "cascade" })
       .notNull(),
@@ -15,9 +16,7 @@ export const EnrollmentTable = pgTable(
       .notNull(),
     stripeSessionId: text("stripe_session_id").notNull().unique(),
     stripePaymentIntentId: text("stripe_payment_intent_id"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt,
   },
   (table) => [unique("user_enrollment").on(table.courseId, table.userId)],
 );

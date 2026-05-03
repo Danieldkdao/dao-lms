@@ -1,4 +1,4 @@
-type CacheTag = "users" | "courses" | "lessons";
+type CacheTag = "users" | "courses" | "lessons" | "enrollments";
 
 export const getGlobalTag = (tag: CacheTag) => {
   return `global:${tag}`;
