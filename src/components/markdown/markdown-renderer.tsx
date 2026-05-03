@@ -16,7 +16,7 @@ export const MarkdownRenderer = ({
     <div
       className={cn(
         "text-base leading-7 text-foreground",
-        "[&_p]:my-4",
+        "[&_p]:my-1",
         "[&_h1]:mb-4 [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:leading-tight",
         "[&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-tight",
         "[&_h3]:mb-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-tight",
@@ -28,6 +28,11 @@ export const MarkdownRenderer = ({
         "[&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-4",
         "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
         "[&_hr]:my-6 [&_hr]:border-border",
+        "[&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_table]:overflow-hidden",
+        "[&_thead]:bg-muted",
+        "[&_th]:border [&_th]:border-border [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-semibold",
+        "[&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2 [&_td]:align-top",
+        "[&_td_p]:my-0 [&_th_p]:my-0",
         className,
       )}
       dangerouslySetInnerHTML={{ __html: markdownToHtml(content) }}

@@ -26,9 +26,14 @@
     "@t3-oss/env-nextjs": "^0.13.11",
     "@tanstack/react-table": "^8.21.3",
     "@tigrisdata/storage": "^3.2.1",
-    "@tiptap/pm": "^3.22.2",
-    "@tiptap/react": "^3.22.2",
-    "@tiptap/starter-kit": "^3.22.2",
+    "@tiptap/core": "3.22.2",
+    "@tiptap/extension-table": "3.22.2",
+    "@tiptap/extension-table-cell": "3.22.2",
+    "@tiptap/extension-table-header": "3.22.2",
+    "@tiptap/extension-table-row": "3.22.2",
+    "@tiptap/pm": "3.22.2",
+    "@tiptap/react": "3.22.2",
+    "@tiptap/starter-kit": "3.22.2",
     "better-auth": "^1.5.6",
     "bufferutil": "^4.1.0",
     "canvas-confetti": "^1.9.4",
@@ -68,5 +73,10 @@
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "@tiptap/core": "3.22.2"
+    }
   }
 }

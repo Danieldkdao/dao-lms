@@ -1,11 +1,17 @@
 "use client";
 
+import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
+import { Table } from "@tiptap/extension-table";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import TableRow from "@tiptap/extension-table-row";
 import StarterKit from "@tiptap/starter-kit";
 import {
   BoldIcon,
   BracesIcon,
   CodeIcon,
+  Columns3Icon,
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
@@ -17,8 +23,11 @@ import {
   QuoteIcon,
   Redo2Icon,
   RotateCcwIcon,
+  Rows3Icon,
   StrikethroughIcon,
+  TableIcon,
   TextIcon,
+  Trash2Icon,
   Undo2Icon,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -49,7 +58,7 @@ type TiptapProps = {
   editorClassName?: string;
 };
 
-type Editor = NonNullable<ReturnType<typeof useEditor>>;
+type Editor = TiptapEditor;
 
 type ToolbarToggle = {
   label: string;
@@ -168,6 +177,48 @@ const actionGroups: ToolbarButton[][] = [
   ],
   [
     {
+      label: "Insert table",
+      icon: <TableIcon />,
+      onClick: (editor) =>
+        editor
+          .chain()
+          .focus()
+          .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+          .run(),
+    },
+    {
+      label: "Add row",
+      icon: <Rows3Icon />,
+      disabled: (editor) => !editor.can().addRowAfter(),
+      onClick: (editor) => editor.chain().focus().addRowAfter().run(),
+    },
+    {
+      label: "Add column",
+      icon: <Columns3Icon />,
+      disabled: (editor) => !editor.can().addColumnAfter(),
+      onClick: (editor) => editor.chain().focus().addColumnAfter().run(),
+    },
+    {
+      label: "Delete row",
+      icon: <Rows3Icon />,
+      disabled: (editor) => !editor.can().deleteRow(),
+      onClick: (editor) => editor.chain().focus().deleteRow().run(),
+    },
+    {
+      label: "Delete column",
+      icon: <Columns3Icon />,
+      disabled: (editor) => !editor.can().deleteColumn(),
+      onClick: (editor) => editor.chain().focus().deleteColumn().run(),
+    },
+    {
+      label: "Delete table",
+      icon: <Trash2Icon />,
+      disabled: (editor) => !editor.can().deleteTable(),
+      onClick: (editor) => editor.chain().focus().deleteTable().run(),
+    },
+  ],
+  [
+    {
       label: "Undo",
       icon: <Undo2Icon />,
       disabled: (editor) => !editor.can().undo(),
@@ -260,7 +311,15 @@ export const MDEditor = ({
   }, [value]);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+    ],
     content: markdownToHtml(markdownValue),
     editable: !disabled,
     immediatelyRender: false,
@@ -331,7 +390,7 @@ export const MDEditor = ({
             editor={editor}
             className={cn(
               "bg-transparent dark:bg-input/30 max-h-250 overflow-auto",
-              "[&_.ProseMirror_p]:text-base [&_.ProseMirror_p]:my-4",
+              "[&_.ProseMirror_p]:text-base [&_.ProseMirror_p]:my-1",
               "[&_.ProseMirror_h1]:text-3xl [&_.ProseMirror_h1]:font-semibold [&_.ProseMirror_h1]:leading-tight [&_.ProseMirror_h1]:mb-4",
               "[&_.ProseMirror_h2]:text-2xl [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h2]:leading-tight [&_.ProseMirror_h2]:mb-2",
               "[&_.ProseMirror_h3]:text-xl [&_.ProseMirror_h3]:font-semibold [&_.ProseMirror_h3]:leading-tight [&_.ProseMirror_h3]:mb-1",
@@ -342,6 +401,14 @@ export const MDEditor = ({
               "[&_.ProseMirror_pre]:overflow-x-auto [&_.ProseMirror_pre]:rounded-md [&_.ProseMirror_pre]:bg-muted [&_.ProseMirror_pre]:p-4",
               "[&_.ProseMirror_pre_code]:bg-transparent [&_.ProseMirror_pre_code]:p-0",
               "[&_.ProseMirror_hr]:my-6 [&_.ProseMirror_hr]:border-border",
+              "[&_.ProseMirror_.tableWrapper]:my-4 [&_.ProseMirror_.tableWrapper]:overflow-x-auto",
+              "[&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_table]:table-fixed",
+              "[&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-border [&_.ProseMirror_th]:bg-muted [&_.ProseMirror_th]:px-3 [&_.ProseMirror_th]:py-2 [&_.ProseMirror_th]:text-left [&_.ProseMirror_th]:font-semibold",
+              "[&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-border [&_.ProseMirror_td]:px-3 [&_.ProseMirror_td]:py-2 [&_.ProseMirror_td]:align-top",
+              "[&_.ProseMirror_td_p]:my-0 [&_.ProseMirror_th_p]:my-0",
+              "[&_.ProseMirror_.selectedCell]:bg-primary/10",
+              "[&_.ProseMirror_.column-resize-handle]:pointer-events-none [&_.ProseMirror_.column-resize-handle]:absolute [&_.ProseMirror_.column-resize-handle]:bottom-0 [&_.ProseMirror_.column-resize-handle]:right-0 [&_.ProseMirror_.column-resize-handle]:top-0 [&_.ProseMirror_.column-resize-handle]:w-1 [&_.ProseMirror_.column-resize-handle]:bg-primary",
+              "[&_.ProseMirror.resize-cursor]:cursor-col-resize",
               disabled && "opacity-70",
               editorClassName,
             )}

@@ -19,6 +19,13 @@ const escapeMarkdown = (value: string) =>
 
 const unwrapParagraph = (value: string) => value.replace(/\n{2,}/g, "\n");
 
+const escapeTableCell = (value: string) =>
+  value
+    .replaceAll("\\|", "|")
+    .replaceAll("|", "\\|")
+    .replace(/\s*\n+\s*/g, "<br>")
+    .trim();
+
 const serializeInline = (nodes: TiptapNode[] = []) =>
   nodes.map(serializeNode).join("");
 
@@ -58,6 +65,41 @@ const serializeList = (node: TiptapNode, depth: number, ordered: boolean) => {
     .join("\n");
 };
 
+const serializeTableCell = (node: TiptapNode) => {
+  return escapeTableCell(
+    (node.content ?? [])
+      .map((child) =>
+        child.type === "paragraph"
+          ? serializeInline(child.content)
+          : serializeNode(child).trim(),
+      )
+      .filter(Boolean)
+      .join("<br>"),
+  );
+};
+
+const serializeTableRow = (node: TiptapNode) => {
+  return (node.content ?? []).map(serializeTableCell);
+};
+
+const serializeTable = (node: TiptapNode) => {
+  const rows = (node.content ?? []).map(serializeTableRow);
+  if (!rows.length) return "";
+
+  const columnCount = Math.max(...rows.map((row) => row.length));
+  const normalizeRow = (row: string[]) => [
+    ...row,
+    ...Array.from({ length: columnCount - row.length }, () => ""),
+  ];
+  const [headerRow, ...bodyRows] = rows.map(normalizeRow);
+  const renderRow = (row: string[]) => `| ${row.join(" | ")} |`;
+  const separator = renderRow(Array.from({ length: columnCount }, () => "---"));
+
+  return [renderRow(headerRow ?? []), separator, ...bodyRows.map(renderRow)].join(
+    "\n",
+  );
+};
+
 const serializeNode = (node?: TiptapNode, depth = 0): string => {
   if (!node) return "";
 
@@ -91,6 +133,13 @@ const serializeNode = (node?: TiptapNode, depth = 0): string => {
     }
     case "horizontalRule":
       return "---";
+    case "table":
+      return serializeTable(node);
+    case "tableRow":
+      return serializeTableRow(node).join(" | ");
+    case "tableHeader":
+    case "tableCell":
+      return serializeTableCell(node);
     case "hardBreak":
       return "  \n";
     case "text": {
@@ -141,6 +190,72 @@ const renderList = (lines: string[], ordered: boolean) => {
   return `<${tag}>${items}</${tag}>`;
 };
 
+const splitMarkdownTableRow = (line: string) => {
+  const trimmed = line.trim().replace(/^\|/, "").replace(/\|$/, "");
+  const cells: string[] = [];
+  let current = "";
+  let escaped = false;
+
+  for (const char of trimmed) {
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (char === "|") {
+      cells.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  cells.push(current.trim());
+
+  return cells;
+};
+
+const isMarkdownTableSeparator = (line?: string) => {
+  if (!line) return false;
+
+  return splitMarkdownTableRow(line).every((cell) =>
+    /^:?-{3,}:?$/.test(cell.trim()),
+  );
+};
+
+const isMarkdownTableRow = (line?: string) => {
+  if (!line) return false;
+
+  return line.includes("|") && splitMarkdownTableRow(line).length > 1;
+};
+
+const renderTableCellContent = (value: string) =>
+  renderInlineMarkdown(value).replace(/&lt;br&gt;/gi, "<br>");
+
+const renderTable = (rows: string[][]) => {
+  const [headerRow, ...bodyRows] = rows;
+  const renderCells = (row: string[], tag: "td" | "th") =>
+    row.map((cell) => `<${tag}>${renderTableCellContent(cell)}</${tag}>`).join("");
+
+  return [
+    "<table>",
+    headerRow ? `<thead><tr>${renderCells(headerRow, "th")}</tr></thead>` : "",
+    bodyRows.length
+      ? `<tbody>${bodyRows
+          .map((row) => `<tr>${renderCells(row, "td")}</tr>`)
+          .join("")}</tbody>`
+      : "",
+    "</table>",
+  ].join("");
+};
+
 export const tiptapJsonToMarkdown = (json: TiptapNode) =>
   serializeNode(json).trim();
 
@@ -184,6 +299,22 @@ export const markdownToHtml = (markdown?: string | null) => {
         `<h${level}>${renderInlineMarkdown(line.replace(/^#{1,3}\s+/, ""))}</h${level}>`,
       );
       index += 1;
+      continue;
+    }
+
+    if (
+      isMarkdownTableRow(line) &&
+      isMarkdownTableSeparator(lines[index + 1])
+    ) {
+      const tableRows = [splitMarkdownTableRow(line)];
+      index += 2;
+
+      while (index < lines.length && isMarkdownTableRow(lines[index])) {
+        tableRows.push(splitMarkdownTableRow(lines[index] ?? ""));
+        index += 1;
+      }
+
+      blocks.push(renderTable(tableRows));
       continue;
     }
 
@@ -251,6 +382,37 @@ export const htmlToMarkdown = (html?: string | null) => {
     const content = Array.from(element.childNodes).map(walk).join("");
 
     switch (element.tagName.toLowerCase()) {
+      case "table": {
+        const rows = Array.from(element.querySelectorAll("tr"))
+          .map((row) =>
+            Array.from(row.querySelectorAll("th, td")).map((cell) =>
+              escapeTableCell(
+                Array.from(cell.childNodes)
+                  .map(walk)
+                  .join("")
+                  .replace(/\n{2,}/g, "\n")
+                  .trim(),
+              ),
+            ),
+          )
+          .filter((row) => row.length);
+
+        if (!rows.length) return "";
+
+        const columnCount = Math.max(...rows.map((row) => row.length));
+        const normalizeRow = (row: string[]) => [
+          ...row,
+          ...Array.from({ length: columnCount - row.length }, () => ""),
+        ];
+        const [headerRow, ...bodyRows] = rows.map(normalizeRow);
+        const renderRow = (row: string[]) => `| ${row.join(" | ")} |`;
+
+        return [
+          renderRow(headerRow ?? []),
+          renderRow(Array.from({ length: columnCount }, () => "---")),
+          ...bodyRows.map(renderRow),
+        ].join("\n").concat("\n\n");
+      }
       case "p":
         return `${content}\n\n`;
       case "h1":

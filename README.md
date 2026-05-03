@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dao LMS
+
+A modern learning management system built with Next.js. Dao LMS supports public course discovery, Stripe-powered enrollment, learner dashboards, lesson progress, and an admin workspace for managing courses, chapters, lessons, media, and analytics.
+
+## Features
+
+- Public course catalog with course detail pages
+- Email and OAuth authentication with Better Auth
+- Role-based admin and learner dashboards
+- Course, chapter, and lesson management
+- Drag-and-drop ordering for chapters and lessons
+- Rich markdown lesson content with TipTap editing
+- Markdown tables in the editor and renderer
+- Video and image uploads through S3-compatible storage
+- Stripe checkout and webhook-based enrollment
+- Learner progress tracking
+- Admin analytics with enrollment charts
+
+## Tech Stack
+
+- Next.js 16 and React 19
+- TypeScript
+- Tailwind CSS
+- Drizzle ORM
+- Neon Postgres
+- Better Auth
+- Stripe
+- Tigris/S3-compatible object storage
+- TipTap
+- Recharts
+- shadcn-style UI components
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env` file in the project root and fill in the required variables:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+DATABASE_URL=
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
 
-## Learn More
+SMTP_USER=
+SMTP_PASS=
+SENDER_EMAIL=
 
-To learn more about Next.js, take a look at the following resources:
+TIGRIS_STORAGE_ACCESS_KEY_ID=
+TIGRIS_STORAGE_SECRET_ACCESS_KEY=
+TIGRIS_STORAGE_ENDPOINT=
+TIGRIS_STORAGE_BUCKET=
+NEXT_PUBLIC_TIGRIS_STORAGE_BUCKET=
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+STRIPE_SECRET_KEY=
+STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+NEXT_PUBLIC_APP_URL=
+```
 
-## Deploy on Vercel
+Push the database schema:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm db:push
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Run the development server:
+
+```bash
+pnpm dev
+```
+
+Open `http://localhost:3000`.
+
+## Scripts
+
+```bash
+pnpm dev          # Start the local dev server
+pnpm build        # Build the production app
+pnpm start        # Start the production server
+pnpm lint         # Run ESLint
+pnpm db:push      # Push Drizzle schema changes
+pnpm db:migrate   # Run Drizzle migrations
+pnpm db:generate  # Generate Drizzle migration files
+pnpm db:studio    # Open Drizzle Studio
+```
+
+## Stripe Webhooks
+
+Enrollments are written from Stripe webhook events after checkout succeeds. In local development, forward Stripe events to:
+
+```bash
+/api/webhooks/stripe
+```
+
+The webhook must send `checkout.session.completed` events and use the same signing secret stored in `STRIPE_WEBHOOK_SECRET`.
+
+## Project Structure
+
+```txt
+src/app                App Router routes and API handlers
+src/components         Shared UI, dashboard, auth, and markdown components
+src/db                 Drizzle database setup and schemas
+src/features           Feature modules for courses, chapters, lessons, enrollments
+src/lib                Auth, actions, utilities, and emails
+src/services           Stripe and storage integrations
+```
+
+## Dashboards
+
+- `/admin` shows analytics and recent courses.
+- `/admin/courses` manages course creation, editing, deletion, chapters, and lessons.
+- `/dashboard` shows enrolled and available courses for learners.
+- `/dashboard/[courseId]/[lessonId]` is the lesson player experience.
+
+## Notes
+
+- Course purchases depend on valid Stripe price IDs created for each course.
+- Uploaded media is stored in the configured S3-compatible bucket.
+- Lesson descriptions are stored as markdown and rendered safely through the project markdown renderer.
