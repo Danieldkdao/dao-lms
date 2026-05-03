@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  allowedDevOrigins: ["chiffonade-nonadministrable-alyse.ngrok-free.dev"],
   images: {
     remotePatterns: [
       {

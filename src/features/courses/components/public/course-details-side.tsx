@@ -58,7 +58,7 @@ export const CourseDetailsSide = ({
           </h2>
         </div>
         <div className="bg-accent rounded-lg p-5 flex flex-col gap-4">
-          <h3 className="text-xl font-medium">What you'll get:</h3>
+          <h3 className="text-xl font-medium">What you&apos;ll get:</h3>
           <div className="flex flex-col gap-2">
             {features.map((feature) => (
               <div className="flex items-center gap-2" key={feature.label}>

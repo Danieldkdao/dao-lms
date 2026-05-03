@@ -11,69 +11,25 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
-  ChartBarIcon,
-  CircleHelpIcon,
-  FolderIcon,
-  GaugeIcon,
-  ListIcon,
-  SearchIcon,
-  Settings2Icon,
-  UsersIcon,
-} from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { Logo } from "./logo";
 import { NavSecondary } from "./nav-secondary";
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/admin",
-      icon: <GaugeIcon />,
-    },
-    {
-      title: "Courses",
-      url: "/admin/courses",
-      icon: <ListIcon />,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: <ChartBarIcon />,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: <FolderIcon />,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: <UsersIcon />,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: <Settings2Icon />,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: <CircleHelpIcon />,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: <SearchIcon />,
-    },
-  ],
+type NavItemsType = {
+  title: string;
+  url: string;
+  icon: React.ReactNode;
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  navMain,
+  navSecondary,
+  ...props
+}: {
+  navMain: NavItemsType[];
+  navSecondary: NavItemsType[];
+} & React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -91,8 +47,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

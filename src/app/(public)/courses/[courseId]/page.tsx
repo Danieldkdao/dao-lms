@@ -1,11 +1,13 @@
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { db } from "@/db/db";
 import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
 import { CourseNotFound } from "@/features/courses/components/course-not-found";
@@ -34,9 +36,112 @@ type CourseIdProps = {
 
 const CourseIdPage = (props: CourseIdProps) => {
   return (
-    <Suspense>
+    <Suspense fallback={<CourseIdLoading />}>
       <CourseIdSuspense {...props} />
     </Suspense>
+  );
+};
+
+const CourseIdLoading = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr] gap-8 items-start">
+      <div className="w-full flex flex-col gap-8">
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-80 sm:h-100 md:h-110 lg:h-125 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full max-w-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-full max-w-3xl" />
+            <Skeleton className="h-6 w-full max-w-xl" />
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Skeleton className="h-6 w-24 rounded-full" />
+            <Skeleton className="h-6 w-28 rounded-full" />
+            <Skeleton className="h-6 w-24 rounded-full" />
+          </div>
+        </div>
+        <Separator />
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-9 w-72" />
+          <div className="space-y-3">
+            <Skeleton className="h-5 w-full" />
+            <Skeleton className="h-5 w-full" />
+            <Skeleton className="h-5 w-5/6" />
+            <Skeleton className="h-5 w-3/4" />
+          </div>
+        </div>
+        <div className="space-y-8">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <Skeleton className="h-9 w-60" />
+            <Skeleton className="h-5 w-44" />
+          </div>
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <ChapterSkeleton key={index} />
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="w-full md:sticky md:top-28">
+        <CourseDetailsSideSkeleton />
+      </div>
+    </div>
+  );
+};
+
+const ChapterSkeleton = () => {
+  return (
+    <div className="border rounded-lg p-5">
+      <div className="flex items-center gap-4">
+        <Skeleton className="size-14 rounded-full shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-6 w-full max-w-md" />
+          <Skeleton className="h-5 w-24" />
+        </div>
+        <Skeleton className="size-6 shrink-0" />
+      </div>
+    </div>
+  );
+};
+
+const CourseDetailsSideSkeleton = () => {
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-6">
+        <div className="w-full flex items-center gap-2 justify-between">
+          <Skeleton className="h-7 w-16" />
+          <Skeleton className="h-9 w-28" />
+        </div>
+        <div className="bg-accent rounded-lg p-5 flex flex-col gap-4">
+          <Skeleton className="h-7 w-40" />
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div className="flex items-center gap-2" key={index}>
+                <Skeleton className="size-10 rounded-full shrink-0" />
+                <div className="flex flex-col gap-2 flex-1">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-5 w-24" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-7 w-44" />
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div className="flex items-center gap-2" key={index}>
+                <Skeleton className="size-6 rounded-full" />
+                <Skeleton className="h-5 w-52" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="mx-auto h-5 w-52" />
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -62,7 +167,7 @@ const CourseIdSuspense = async ({ params }: CourseIdProps) => {
               className="object-cover"
             />
           </div>
-          <h1 className="text-4xl font-semibold">{course.title}</h1>
+          <h1 className="text-4xl font-semibold mt-4">{course.title}</h1>
           <p className="text-lg text-muted-foreground line-clamp-2">
             {course.smallDescription}
           </p>

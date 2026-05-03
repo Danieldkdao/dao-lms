@@ -49,7 +49,7 @@ export const POST = async (req: NextRequest) => {
   const alreadyOwned = await userHasCourse(session.user.id, existingCourse.id);
   if (alreadyOwned) {
     return NextResponse.json(
-      { error: "You already enrolled in this course." },
+      { error: true, message: "You are already enrolled in this course." },
       { status: 409 },
     );
   }

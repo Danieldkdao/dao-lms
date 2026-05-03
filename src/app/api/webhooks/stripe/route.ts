@@ -27,7 +27,7 @@ export const POST = async (req: NextRequest) => {
   }
 
   if (event.type === "checkout.session.completed") {
-    const session = (await event.data.object) as Stripe.Checkout.Session;
+    const session = event.data.object as Stripe.Checkout.Session;
 
     if (session.payment_status !== "paid") {
       return NextResponse.json({ received: true });
@@ -53,19 +53,18 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ received: true });
     }
 
-    await db.insert(EnrollmentTable).values({
-      userId,
-      courseId,
-      stripeSessionId: session.id,
-      stripePaymentIntentId: (session.payment_intent as string) ?? null,
-    });
+    await db
+      .insert(EnrollmentTable)
+      .values({
+        userId,
+        courseId,
+        stripeSessionId: session.id,
+        stripePaymentIntentId: (session.payment_intent as string) ?? null,
+      })
+      .onConflictDoNothing();
 
     console.log(`Enrollment recorded: user=${userId} course=${courseId}`);
   }
 
   return NextResponse.json({ received: true });
-};
-
-export const config = {
-  api: { bodyParser: false },
 };
