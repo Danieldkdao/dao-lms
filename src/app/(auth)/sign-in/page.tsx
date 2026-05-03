@@ -55,7 +55,7 @@ const SignInPage = () => {
   const handleSignIn = async (data: FormType) => {
     await authClient.signIn.email({
       ...data,
-      callbackURL: "/dashboard",
+      callbackURL: "/",
       fetchOptions: {
         onSuccess: () => {
           toast.success("Sign in successfully!");
@@ -79,7 +79,7 @@ const SignInPage = () => {
     setSocialSignInLoading(true);
     await authClient.signIn.social({
       provider,
-      callbackURL: "/dashboard",
+      callbackURL: "/",
       fetchOptions: {
         onError: (error) => {
           toast.error(error.error.message || "Failed to sign in");

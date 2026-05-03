@@ -34,7 +34,7 @@ export const useConfetti = () => {
     });
   }
 
-  const runConfetti = () => {
+  const triggerConfetti = () => {
     fire(0.25, {
       spread: 26,
       startVelocity: 55,
@@ -59,5 +59,5 @@ export const useConfetti = () => {
     });
   };
 
-  return { fire, runConfetti };
+  return { fire, triggerConfetti: triggerConfetti };
 };

@@ -1,21 +1,30 @@
-import { boolean, pgTable, uuid, varchar } from "drizzle-orm/pg-core";
-import { createdAt, id, updatedAt } from "../helpers";
-import { user } from "./user";
-import { LessonTable } from "./lesson";
 import { relations } from "drizzle-orm";
+import {
+  boolean,
+  pgTable,
+  primaryKey,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
+import { createdAt, updatedAt } from "../helpers";
+import { LessonTable } from "./lesson";
+import { user } from "./user";
 
-export const LessonProgressTable = pgTable("lesson_progress", {
-  id,
-  userId: varchar("user_id")
-    .references(() => user.id, { onDelete: "cascade" })
-    .notNull(),
-  lessonId: uuid("lesson_id")
-    .references(() => LessonTable.id, { onDelete: "cascade" })
-    .notNull(),
-  completed: boolean("completed").notNull().default(false),
-  createdAt,
-  updatedAt,
-});
+export const LessonProgressTable = pgTable(
+  "lesson_progress",
+  {
+    userId: varchar("user_id")
+      .references(() => user.id, { onDelete: "cascade" })
+      .notNull(),
+    lessonId: uuid("lesson_id")
+      .references(() => LessonTable.id, { onDelete: "cascade" })
+      .notNull(),
+    completed: boolean("completed").notNull().default(false),
+    createdAt,
+    updatedAt,
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.lessonId] })],
+);
 
 export const lessonProgressRelations = relations(
   LessonProgressTable,

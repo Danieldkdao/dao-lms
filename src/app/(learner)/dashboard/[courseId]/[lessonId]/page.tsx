@@ -1,20 +1,17 @@
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LearnerCourseOutlineSidebar } from "@/features/courses/components/learner/learner-course-outline-sidebar";
 import { userHasCourse } from "@/features/enrollments/lib/helpers";
 import { getLearnerLesson } from "@/features/lessons/actions/action";
+import { MarkCompleteButton } from "@/features/lessons/components/learner/mark-complete-button";
 import { auth } from "@/lib/auth/auth";
 import { generateFileUrl } from "@/lib/utils";
-import {
-  CheckCircleIcon,
-  LockIcon,
-  SearchXIcon,
-} from "lucide-react";
-import Link from "next/link";
+import { LockIcon, SearchXIcon } from "lucide-react";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { Suspense } from "react";
 
 type CourseLearningLessonParams = {
@@ -97,7 +94,7 @@ const CourseLearningLessonSuspense = async ({
     return <NoCourseAccessState courseId={courseId} />;
   }
 
-  const lesson = await getLearnerLesson(lessonId);
+  const lesson = await getLearnerLesson(session.user.id, lessonId);
   if (!lesson) {
     return <LessonNotFoundState courseId={courseId} />;
   }
@@ -130,10 +127,11 @@ const CourseLearningLessonSuspense = async ({
             No video was published for this lesson.
           </div>
         )}
-        <Button variant="outline" className="gap-4 w-fit">
-          <CheckCircleIcon className="text-emerald-600" />
-          Mark as Complete
-        </Button>
+        <MarkCompleteButton
+          courseId={courseId}
+          lessonId={lesson.id}
+          isCompleted={!!lesson.progress?.completed}
+        />
         <Separator />
         <div>
           <h1 className="text-3xl font-semibold">{lesson.name}</h1>
@@ -227,13 +225,11 @@ const CenteredStateCard = ({
   return (
     <div className="p-10 min-h-[calc(100svh-var(--header-height))] flex items-center justify-center">
       <Card className="w-full max-w-xl">
-        <CardHeader className="items-center text-center">
+        <CardContent className="flex flex-col items-center gap-5 text-center">
           <div className="bg-primary/10 text-primary flex size-12 items-center justify-center rounded-full">
             {icon}
           </div>
-          <CardTitle>{title}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-5 text-center">
+          <h1 className="text-lg font-semibold">{title}</h1>
           <p className="text-muted-foreground max-w-md">{description}</p>
           {action}
         </CardContent>

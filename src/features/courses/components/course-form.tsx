@@ -39,6 +39,7 @@ import {
 } from "../lib/formatters";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/hooks/use-confirm";
+import { useConfetti } from "@/hooks/use-confetti";
 
 export const CourseForm = ({
   course,
@@ -46,6 +47,7 @@ export const CourseForm = ({
   course?: typeof CourseTable.$inferSelect;
 }) => {
   const router = useRouter();
+  const { triggerConfetti } = useConfetti();
   const [ConfirmationDialog, confirm] = useConfirm(
     "Confirm Course Publishing",
     "Are you sure you want to publish this course? This course will be available for people to view and purchase.",
@@ -89,6 +91,7 @@ export const CourseForm = ({
     } else {
       form.reset();
       router.push("/admin/courses");
+      triggerConfetti();
     }
   };
 

@@ -1,12 +1,18 @@
 "use server";
 
 import { db } from "@/db/db";
-import { ChapterTable, CourseTable, LessonTable } from "@/db/schema";
+import {
+  ChapterTable,
+  CourseTable,
+  LessonProgressTable,
+  LessonTable,
+} from "@/db/schema";
 import { revalidateCourseCache } from "@/features/courses/db/cache/courses";
 import {
   GENERAL_ERROR_MESSAGE,
   INVALID_DATA_MESSAGE,
   NO_PERMISSION_MESSAGE,
+  UNAUTHED_MESSAGE,
 } from "@/lib/auth/constants";
 import { requireAdminPermission } from "@/lib/auth/permissions";
 import { and, eq, getTableColumns, gt, inArray, sql } from "drizzle-orm";
@@ -20,6 +26,9 @@ import {
   lessonSchema,
   LessonSchemaType,
 } from "./schema";
+import { auth } from "@/lib/auth/auth";
+import { headers } from "next/headers";
+import { userHasCourse } from "@/features/enrollments/lib/helpers";
 
 export const getLesson = async (
   courseId: string,
@@ -50,16 +59,22 @@ export const getLesson = async (
   return existingLesson;
 };
 
-export const getLearnerLesson = async (lessonId: string) => {
+export const getLearnerLesson = async (userId: string, lessonId: string) => {
   "use cache";
   cacheTag(getLessonIdTag(lessonId));
 
-  const [existingLesson] = await db
-    .select()
-    .from(LessonTable)
-    .where(eq(LessonTable.id, lessonId));
+  const existingLesson = await db.query.LessonTable.findFirst({
+    where: eq(LessonTable.id, lessonId),
+    with: {
+      progress: {
+        where: eq(LessonProgressTable.userId, userId),
+        limit: 1,
+      },
+    },
+  });
 
-  return existingLesson ?? null;
+  if (!existingLesson) return null;
+  return { ...existingLesson, progress: existingLesson.progress?.[0] ?? null };
 };
 
 export const createLesson = async (
@@ -261,7 +276,9 @@ export const reorderLessons = async (
     }
 
     revalidateCourseCache(response.courseId);
-    response.updatedLessons.forEach((lesson) => revalidateLessonCache(lesson.id));
+    response.updatedLessons.forEach((lesson) =>
+      revalidateLessonCache(lesson.id),
+    );
   } catch (error) {
     console.error(error);
     return {
@@ -274,4 +291,70 @@ export const reorderLessons = async (
     error: false,
     message: "Lessons reordered successfully!",
   };
+};
+
+export const markLessonComplete = async (
+  courseId: string,
+  lessonId: string,
+) => {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) {
+      return {
+        error: true,
+        message: UNAUTHED_MESSAGE,
+      };
+    }
+
+    if (!(await userHasCourse(session.user.id, courseId))) {
+      return {
+        error: true,
+        message: "Please enroll in this course to continue.",
+      };
+    }
+
+    const [existingLesson] = await db
+      .select()
+      .from(LessonTable)
+      .where(eq(LessonTable.id, lessonId));
+    if (!existingLesson) {
+      return {
+        error: true,
+        message: "Lesson not found.",
+      };
+    }
+
+    const [upsertedProgress] = await db
+      .insert(LessonProgressTable)
+      .values({
+        userId: session.user.id,
+        lessonId: existingLesson.id,
+        completed: true,
+      })
+      .onConflictDoUpdate({
+        set: {
+          completed: true,
+        },
+        target: [LessonProgressTable.userId, LessonProgressTable.lessonId],
+      })
+      .returning();
+
+    if (!upsertedProgress) {
+      throw new Error(JSON.stringify(upsertedProgress));
+    }
+
+    revalidateCourseCache(courseId);
+    revalidateLessonCache(existingLesson.id);
+
+    return {
+      error: false,
+      message: "Progress updated!",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: GENERAL_ERROR_MESSAGE,
+    };
+  }
 };

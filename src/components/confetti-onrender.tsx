@@ -4,9 +4,9 @@ import { useConfetti } from "@/hooks/use-confetti";
 import { useEffect } from "react";
 
 export const ConfettiOnRender = () => {
-  const { runConfetti } = useConfetti();
+  const { triggerConfetti } = useConfetti();
   useEffect(() => {
-    runConfetti();
+    triggerConfetti();
   }, []);
 
   return null;

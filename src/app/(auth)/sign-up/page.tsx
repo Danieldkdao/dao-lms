@@ -64,7 +64,7 @@ const SignUpPage = () => {
   const handleSignUp = async (data: FormType) => {
     await authClient.signUp.email({
       ...data,
-      callbackURL: "/dashboard",
+      callbackURL: "/",
       fetchOptions: {
         onSuccess: async () => {
           toast.success("Account created successfully!");
@@ -85,7 +85,7 @@ const SignUpPage = () => {
     setSocialSignInLoading(true);
     await authClient.signIn.social({
       provider,
-      callbackURL: "/dashboard",
+      callbackURL: "/",
       fetchOptions: {
         onError: (error) => {
           toast.error(error.error.message || "Failed to create your account");

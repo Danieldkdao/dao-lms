@@ -25,10 +25,10 @@ const colorMap = {
     iconWrapper: "border-primary bg-primary/20",
     card: "border-none bg-primary/20 text-primary",
   },
-  watched: {
-    icon: "fill-primary text-primary",
-    iconWrapper: "border-primary bg-primary/20",
-    card: "border-none bg-primary/20 text-primary",
+  completed: {
+    icon: "text-emerald-400 fill-emerald-400",
+    iconWrapper: "border-emerald-400 bg-emerald-400/20",
+    card: "border-none bg-emerald-400/20 text-emerald-400",
   },
 };
 
@@ -143,65 +143,101 @@ const LearnerCourseOutlineSidebarSuspense = async ({
       </div>
       <Separator />
       <div className="p-4 flex flex-col gap-2 overflow-y-auto">
-        {course.chapters.map((chapter) => (
-          <Collapsible key={chapter.id} defaultOpen={chapterId === chapter.id}>
-            <CollapsibleTrigger className="group p-4 border bg-card cursor-pointer w-full flex items-center gap-2">
-              <ChevronRightIcon className="text-primary shrink-0 size-4 transition-all duration-300 group-data-[state=open]:rotate-90" />
-              <div className="flex flex-col items-start gap-0.5">
-                <span className="text-base font-semibold text-start line-clamp-1">
-                  {chapter.position}. {chapter.name}
-                </span>
-                <span className="text-muted-foreground text-start text-sm">
-                  {chapter.lessons.length} lessons
-                </span>
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="border-l-4 pl-6 mt-4 mb-2 flex flex-col gap-4">
-              {chapter.lessons.map((lesson) => {
-                const isActive = lesson.id === lessonId;
-
-                return (
-                  <Link
-                    key={lesson.id}
-                    href={`/dashboard/${courseId}/${lesson.id}`}
-                    className="w-full"
+        {course.chapters.map((chapter) => {
+          const isChapterComplete = chapter.lessons.every(
+            (lesson) => !!lesson.progress?.[0]?.completed,
+          );
+          return (
+            <Collapsible
+              key={chapter.id}
+              defaultOpen={chapterId === chapter.id}
+            >
+              <CollapsibleTrigger
+                className={cn(
+                  "group p-4 border bg-card cursor-pointer w-full flex items-center gap-2",
+                  isChapterComplete && colorMap.completed.card,
+                )}
+              >
+                <ChevronRightIcon
+                  className={cn(
+                    "text-primary fill-primary shrink-0 size-4 transition-all duration-300 group-data-[state=open]:rotate-90",
+                    isChapterComplete && colorMap.completed.icon,
+                  )}
+                />
+                <div className="flex flex-col items-start gap-0.5">
+                  <span className="text-base font-semibold text-start line-clamp-1">
+                    {chapter.position}. {chapter.name}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-muted-foreground text-start text-sm",
+                      isChapterComplete && colorMap.completed.icon,
+                    )}
                   >
-                    <div
-                      className={cn(
-                        "flex items-center gap-4 p-4 rounded-md border bg-card",
-                        isActive && colorMap.active.card,
-                      )}
+                    {chapter.lessons.length} lessons
+                  </span>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent
+                className={cn(
+                  "border-l-4 pl-6 mt-4 mb-2 flex flex-col gap-4",
+                  isChapterComplete && "border-emerald-400/20",
+                )}
+              >
+                {chapter.lessons.map((lesson) => {
+                  const isActive = lesson.id === lessonId;
+                  const isCompleted = !!lesson.progress?.[0]?.completed;
+
+                  return (
+                    <Link
+                      key={lesson.id}
+                      href={`/dashboard/${courseId}/${lesson.id}`}
+                      className="w-full"
                     >
                       <div
                         className={cn(
-                          "size-7 border-2 border-muted-foreground shrink-0 rounded-full flex items-center justify-center",
-                          isActive && colorMap.active.iconWrapper,
+                          "flex items-center gap-4 p-4 rounded-md border bg-card",
+                          isActive && colorMap.active.card,
+                          isCompleted && colorMap.completed.card,
                         )}
                       >
-                        <PlayIcon
+                        <div
                           className={cn(
-                            "size-3 fill-muted-foreground text-muted-foreground",
-                            isActive && colorMap.active.icon,
+                            "size-7 border-2 border-muted-foreground shrink-0 rounded-full flex items-center justify-center",
+                            isActive && colorMap.active.iconWrapper,
+                            isCompleted && colorMap.completed.iconWrapper,
                           )}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-base font-semibold line-clamp-1">
-                          {lesson.position}. {lesson.name}
-                        </span>
-                        {isActive && (
-                          <span className="text-sm text-primary">
-                            Currently watching
+                        >
+                          <PlayIcon
+                            className={cn(
+                              "size-3 fill-muted-foreground text-muted-foreground",
+                              isActive && colorMap.active.icon,
+                              isCompleted && colorMap.completed.icon,
+                            )}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-base font-semibold line-clamp-1">
+                            {lesson.position}. {lesson.name}
                           </span>
-                        )}
+                          {(isActive || isCompleted) && (
+                            <span className="text-sm">
+                              {isCompleted
+                                ? "Completed"
+                                : isActive
+                                  ? "Currently watching"
+                                  : undefined}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </CollapsibleContent>
-          </Collapsible>
-        ))}
+                    </Link>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
       </div>
     </div>
   );

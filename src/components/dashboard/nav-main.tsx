@@ -30,7 +30,7 @@ export function NavMain({
               <Link href="/admin/courses/create" className="w-full">
                 <SidebarMenuButton
                   tooltip="Quick Create"
-                  className="min-w-8 bg-primary text-white duration-200 ease-linear hover:bg-primary/90 hover:text-white active:bg-primary/90 active:text-primary-foreground"
+                  className="min-w-8 bg-primary cursor-pointer text-white duration-200 ease-linear hover:bg-primary/90 hover:text-white active:bg-primary/90 active:text-primary-foreground"
                 >
                   <CirclePlusIcon />
                   <span>Quick Create</span>
