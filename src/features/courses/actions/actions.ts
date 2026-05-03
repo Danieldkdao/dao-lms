@@ -5,6 +5,7 @@ import {
   ChapterTable,
   CourseTable,
   EnrollmentTable,
+  LessonProgressTable,
   LessonTable,
 } from "@/db/schema";
 import {
@@ -194,7 +195,7 @@ export const getAvailableCourses = async (userId: string) => {
   return courses;
 };
 
-export const getCourse = async (courseId: string) => {
+export const getCourse = async (courseId: string, userId?: string) => {
   "use cache";
   cacheTag(getCourseIdTag(courseId));
 
@@ -204,10 +205,18 @@ export const getCourse = async (courseId: string) => {
       chapters: {
         with: {
           lessons: {
-            orderBy: asc(LessonTable.position),
+            with: {
+              progress: {
+                where: userId
+                  ? eq(LessonProgressTable.userId, userId)
+                  : undefined,
+                limit: 1,
+              },
+            },
+            orderBy: [asc(LessonTable.position), asc(LessonTable.id)],
           },
         },
-        orderBy: asc(ChapterTable.position),
+        orderBy: [asc(ChapterTable.position), asc(ChapterTable.id)],
       },
     },
   });

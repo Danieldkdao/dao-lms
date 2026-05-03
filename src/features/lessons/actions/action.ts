@@ -147,7 +147,7 @@ export const deleteLesson = async (chapterId: string, lessonId: string) => {
       error: false,
       message: "Lesson deleted successfully!",
     };
-  } catch (error) {
+  } catch {
     return {
       error: true,
       message: "Failed to delete lesson. Please try again.",
@@ -226,22 +226,42 @@ export const reorderLessons = async (
   `;
 
   try {
-    const response = await db
-      .update(LessonTable)
-      .set({
-        position: positionSql,
-      })
-      .where(
-        and(
-          inArray(LessonTable.id, lessonIds),
-          eq(LessonTable.chapterId, chapterId),
-        ),
-      )
-      .returning();
+    const response = await db.transaction(async (tx) => {
+      const [chapter] = await tx
+        .select({ courseId: ChapterTable.courseId })
+        .from(ChapterTable)
+        .where(eq(ChapterTable.id, chapterId))
+        .limit(1);
 
-    if (!response || !response.length) {
-      throw new Error(JSON.stringify(response));
+      if (!chapter) {
+        throw new Error("Chapter not found.");
+      }
+
+      const updatedLessons = await tx
+        .update(LessonTable)
+        .set({
+          position: positionSql,
+        })
+        .where(
+          and(
+            inArray(LessonTable.id, lessonIds),
+            eq(LessonTable.chapterId, chapterId),
+          ),
+        )
+        .returning();
+
+      return {
+        courseId: chapter.courseId,
+        updatedLessons,
+      };
+    });
+
+    if (!response.updatedLessons.length) {
+      throw new Error(JSON.stringify(response.updatedLessons));
     }
+
+    revalidateCourseCache(response.courseId);
+    response.updatedLessons.forEach((lesson) => revalidateLessonCache(lesson.id));
   } catch (error) {
     console.error(error);
     return {

@@ -39,7 +39,7 @@ export const SortableLesson = ({
     setDisabled(true);
 
     const response = await deleteLesson(lesson.chapterId, lesson.id);
-    if (!response.error) {
+    if (response.error) {
       toast.error(response.message);
     } else {
       toast.success(response.message);

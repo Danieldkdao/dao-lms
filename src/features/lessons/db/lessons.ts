@@ -2,15 +2,25 @@ import { db } from "@/db/db";
 import { LessonTable } from "@/db/schema";
 import { revalidateCourseCache } from "@/features/courses/db/cache/courses";
 import { revalidateLessonCache } from "./cache/lessons";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export const insertLesson = async (
   courseId: string,
   data: typeof LessonTable.$inferInsert,
 ) => {
+  const [nextPosition] = await db
+    .select({
+      position: sql<number>`coalesce(max(${LessonTable.position}), 0) + 1`,
+    })
+    .from(LessonTable)
+    .where(eq(LessonTable.chapterId, data.chapterId));
+
   const [insertedLesson] = await db
     .insert(LessonTable)
-    .values(data)
+    .values({
+      ...data,
+      position: nextPosition.position,
+    })
     .returning();
 
   revalidateCourseCache(courseId);
