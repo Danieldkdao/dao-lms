@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getAdminCourses } from "@/features/courses/actions/actions";
 import { AdminCourseCard } from "@/features/courses/components/admin-course.card";
 import { requireAdminPermission } from "@/lib/auth/permissions";
+import { BookIcon } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -68,11 +69,27 @@ const AdminCoursesSuspense = async () => {
   }
   const courses = await getAdminCourses();
 
-  return (
+  return courses.length ? (
     <div className="grid grid-cols-1 gap-8 @lg:grid-cols-2">
       {courses.map((course) => (
         <AdminCourseCard key={course.id} course={course} />
       ))}
+    </div>
+  ) : (
+    <div className="p-10 rounded-md border-2 border-dashed bg-card flex flex-col items-center">
+      <div className="size-20 rounded-full flex items-center justify-center bg-accent">
+        <BookIcon className="size-12 text-muted-foreground" />
+      </div>
+      <h1 className="text-2xl font-semibold mt-4 text-center">
+        No Courses Yet
+      </h1>
+      <p className="text-base text-muted-foreground max-w-100 mt-1 mb-4 text-center">
+        Looks like you haven&apos;t created any courses yet. Click the button
+        below to get started.
+      </p>
+      <Button className="max-w-100 w-full" variant="outline">
+        <Link href="/admin/courses/create">Create Course</Link>
+      </Button>
     </div>
   );
 };

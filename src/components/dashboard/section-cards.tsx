@@ -14,29 +14,41 @@ import {
   UsersIcon,
 } from "lucide-react";
 
-export function SectionCards() {
+type SectionCardsProps = {
+  totalUsers: number;
+  totalEnrollments: number;
+  totalCourses: number;
+  totalLessons: number;
+};
+
+export const SectionCards = ({
+  totalUsers,
+  totalEnrollments,
+  totalCourses,
+  totalLessons,
+}: SectionCardsProps) => {
   const sections = [
     {
       label: "Total Signups",
-      data: 2400,
+      data: totalUsers,
       details: "Registered users on the platform",
       icon: <UsersIcon />,
     },
     {
       label: "Total Customers",
-      data: 1200,
+      data: totalEnrollments,
       details: "Users who have enrolled in courses",
       icon: <ShoppingCartIcon />,
     },
     {
       label: "Total Courses",
-      data: 100,
+      data: totalCourses,
       details: "Available courses on the platform",
       icon: <BookOpenIcon />,
     },
     {
       label: "Total Lessons",
-      data: 1000,
+      data: totalLessons,
       details: "Total learning content available",
       icon: <ListChecksIcon />,
     },
@@ -66,4 +78,4 @@ export function SectionCards() {
       ))}
     </div>
   );
-}
+};

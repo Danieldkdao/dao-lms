@@ -223,3 +223,16 @@ export const getCourse = async (courseId: string, userId?: string) => {
 
   return course ?? null;
 };
+
+export const getRecentCourses = async () => {
+  "use cache";
+  cacheTag(getCourseGlobalTag());
+
+  const courses = await db
+    .select()
+    .from(CourseTable)
+    .orderBy(desc(CourseTable.updatedAt), desc(CourseTable.id))
+    .limit(2);
+
+  return courses;
+};

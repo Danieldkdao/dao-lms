@@ -1,6 +1,8 @@
 import { envServer } from "@/data/env/server";
 import { db } from "@/db/db";
 import { EnrollmentTable } from "@/db/schema";
+import { revalidateCourseCache } from "@/features/courses/db/cache/courses";
+import { revalidateEnrollmentCache } from "@/features/enrollments/db/cache/enrollments";
 import { stripe } from "@/services/stripe/stripe";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
@@ -53,7 +55,7 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ received: true });
     }
 
-    await db
+    const [upsertedEnrollment] = await db
       .insert(EnrollmentTable)
       .values({
         userId,
@@ -61,7 +63,11 @@ export const POST = async (req: NextRequest) => {
         stripeSessionId: session.id,
         stripePaymentIntentId: (session.payment_intent as string) ?? null,
       })
-      .onConflictDoNothing();
+      .onConflictDoNothing()
+      .returning();
+
+    revalidateEnrollmentCache(upsertedEnrollment.id, userId);
+    revalidateCourseCache(upsertedEnrollment.courseId);
 
     console.log(`Enrollment recorded: user=${userId} course=${courseId}`);
   }
