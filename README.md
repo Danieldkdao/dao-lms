@@ -16,6 +16,10 @@ A modern learning management system built with Next.js. Dao LMS supports public 
 - Learner progress tracking
 - Admin analytics with enrollment charts
 
+## Project Management
+
+- [DaoLMS Notion task list](https://www.notion.so/351b3d6d3d6f80b7a4cce92dbb1f93f1?v=352b3d6d3d6f80808d99000c27d12eb1)
+
 ## Tech Stack
 
 - Next.js 16 and React 19
