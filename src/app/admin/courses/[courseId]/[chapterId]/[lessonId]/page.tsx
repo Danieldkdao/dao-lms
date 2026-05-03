@@ -89,22 +89,22 @@ const CourseLessonEditSuspense = async ({ params }: CourseLessonEditProps) => {
     return <NoPermission />;
   }
   const { courseId, chapterId, lessonId } = await params;
-  const info = await getLesson(courseId, chapterId, lessonId);
-  if (!info) {
+  const data = await getLesson(courseId, chapterId, lessonId);
+  if (!data) {
     return <LessonNotFound courseId={courseId} />;
   }
 
   return (
     <div className="p-10 flex flex-col gap-8">
       <BackButton
-        href={`/admin/courses/${info.course.id}/edit`}
+        href={`/admin/courses/${data.course.id}/edit`}
         size="default"
         className="text-muted-foreground"
       >
         <ArrowLeftIcon className="text-muted-foreground" />
         Go Back
       </BackButton>
-      <LessonConfiguration courseId={info.course.id} lesson={info.lesson} />
+      <LessonConfiguration courseId={data.course.id} lesson={data.lesson} />
     </div>
   );
 };

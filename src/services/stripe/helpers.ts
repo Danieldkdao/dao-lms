@@ -1,6 +1,6 @@
 import { CourseTable } from "@/db/schema";
 import { stripe } from "./stripe";
-import { generateImageUrl } from "@/lib/utils";
+import { generateFileUrl } from "@/lib/utils";
 
 export const createCourseProduct = async (
   course: Omit<typeof CourseTable.$inferInsert, "stripePriceId">,
@@ -9,7 +9,7 @@ export const createCourseProduct = async (
     const response = await stripe.products.create({
       name: course.title,
       description: course.smallDescription,
-      images: [generateImageUrl(course.thumbnailKey)],
+      images: [generateFileUrl(course.thumbnailKey)],
       active: true,
       default_price_data: {
         currency: "usd",

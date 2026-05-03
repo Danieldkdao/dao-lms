@@ -18,7 +18,7 @@ import {
   formatCourseCategory,
   formatCourseLevel,
 } from "@/features/courses/lib/formatters";
-import { generateImageUrl } from "@/lib/utils";
+import { generateFileUrl } from "@/lib/utils";
 import { asc, eq } from "drizzle-orm";
 import {
   ChartNoAxesColumn,
@@ -160,7 +160,7 @@ const CourseIdSuspense = async ({ params }: CourseIdProps) => {
         <div className="flex flex-col gap-4">
           <div className="relative h-80 sm:h-100 md:h-110 lg:h-125 w-full rounded-xl overflow-hidden">
             <Image
-              src={generateImageUrl(course.thumbnailKey)}
+              src={generateFileUrl(course.thumbnailKey)}
               alt="Thumbnail image"
               fill
               sizes="(max-width: 48rem) calc(100vw - 2rem), 60vw"

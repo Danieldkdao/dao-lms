@@ -11,7 +11,7 @@ import {
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { UploadCloudIcon, XIcon } from "lucide-react";
-import { cn, generateImageUrl } from "@/lib/utils";
+import { cn, generateFileUrl } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
@@ -89,7 +89,7 @@ export const UploadDropzone = ({
   const [localPreviewUrl, setLocalPreviewUrl] = useState("");
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const previewUrl = localPreviewUrl || (value ? generateImageUrl(value) : "");
+  const previewUrl = localPreviewUrl || (value ? generateFileUrl(value) : "");
   const acceptedTypes = accept
     .split(",")
     .map((type) => type.trim())

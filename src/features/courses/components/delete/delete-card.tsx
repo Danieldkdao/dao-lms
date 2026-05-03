@@ -10,7 +10,7 @@ import { deleteCourse } from "../../actions/actions";
 import { toast } from "sonner";
 import { CourseTable } from "@/db/schema";
 import Image from "next/image";
-import { generateImageUrl } from "@/lib/utils";
+import { generateFileUrl } from "@/lib/utils";
 import { LoadingSwap } from "@/components/ui/loading-swap";
 
 export const DeleteCard = ({
@@ -39,7 +39,7 @@ export const DeleteCard = ({
         <h1 className="text-lg font-medium">{course.title}</h1>
         <div className="w-full relative h-50 md:h-75">
           <Image
-            src={generateImageUrl(course.thumbnailKey)}
+            src={generateFileUrl(course.thumbnailKey)}
             alt="Thumbnail image"
             fill
             sizes="(max-width: 48rem) calc(100vw - 5rem), 62.5rem"

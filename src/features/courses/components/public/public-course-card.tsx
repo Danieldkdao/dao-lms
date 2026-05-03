@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CourseTable } from "@/db/schema";
-import { generateImageUrl } from "@/lib/utils";
+import { generateFileUrl } from "@/lib/utils";
 import { ArrowRightIcon, ClockIcon, SchoolIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,7 +24,7 @@ export const PublicCourseCard = ({
               </Badge>
             </div>
             <Image
-              src={generateImageUrl(course.thumbnailKey)}
+              src={generateFileUrl(course.thumbnailKey)}
               alt={`${course.title} image`}
               fill
               sizes="(max-width: 37rem) calc(100vw - 5rem), calc((100vw - 7rem) / 2)"

@@ -18,6 +18,6 @@ export const generateSlug = (text: string, uniqueIdentifier?: string) => {
   );
 };
 
-export const generateImageUrl = (key: string) => {
+export const generateFileUrl = (key: string) => {
   return `https://${envClient.NEXT_PUBLIC_TIGRIS_STORAGE_BUCKET}.t3.tigrisfiles.io/${key}`;
 };

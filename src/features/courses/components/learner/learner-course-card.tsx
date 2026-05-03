@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CourseTable, LessonProgressTable, LessonTable } from "@/db/schema";
-import { generateImageUrl } from "@/lib/utils";
-import { ArrowRightIcon } from "lucide-react";
+import { generateFileUrl } from "@/lib/utils";
+import { ArrowRightIcon, CheckIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatCourseLevel } from "../../lib/formatters";
@@ -21,11 +21,23 @@ export const LearnerCourseCard = ({
     progress?: typeof LessonProgressTable.$inferSelect | null;
   })[];
 }) => {
-  const { completedCount, progressCompletionPercentage } =
-    useCourseProgress(lessons);
+  const {
+    completedCount,
+    progressCompletionPercentage,
+    isCompleted,
+    firstLesson,
+    nextLesson,
+  } = useCourseProgress(lessons);
 
   return (
-    <Link href={`/courses/${course.id}`} className="w-full h-full">
+    <Link
+      href={
+        nextLesson || firstLesson
+          ? `/dashboard/${course.id}/${nextLesson?.id || firstLesson?.id}`
+          : "#"
+      }
+      className="w-full h-full"
+    >
       <Card className="p-0 group h-full">
         <CardContent className="p-0">
           <div className="relative h-80">
@@ -35,7 +47,7 @@ export const LearnerCourseCard = ({
               </Badge>
             </div>
             <Image
-              src={generateImageUrl(course.thumbnailKey)}
+              src={generateFileUrl(course.thumbnailKey)}
               alt={`${course.title} image`}
               fill
               sizes="(max-width: 37rem) calc(100vw - 5rem), calc((100vw - 7rem) / 2)"
@@ -62,9 +74,18 @@ export const LearnerCourseCard = ({
                 {completedCount} of {lessons.length} lessons completed
               </span>
             </div>
-            <Button className="w-full" variant="outline">
-              Continue Learning
-              <ArrowRightIcon />
+            <Button className="w-full" variant="outline" disabled={isCompleted}>
+              {isCompleted ? (
+                <>
+                  Completed
+                  <CheckIcon />
+                </>
+              ) : (
+                <>
+                  Continue Learning
+                  <ArrowRightIcon />
+                </>
+              )}
             </Button>
           </div>
         </CardContent>

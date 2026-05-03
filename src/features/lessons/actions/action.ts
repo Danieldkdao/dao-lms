@@ -9,9 +9,10 @@ import {
   NO_PERMISSION_MESSAGE,
 } from "@/lib/auth/constants";
 import { requireAdminPermission } from "@/lib/auth/permissions";
-import { and, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, eq, getTableColumns, gt, inArray, sql } from "drizzle-orm";
+import { cacheTag } from "next/cache";
 import z from "zod";
-import { revalidateLessonCache } from "../db/cache/lessons";
+import { getLessonIdTag, revalidateLessonCache } from "../db/cache/lessons";
 import { insertLesson, updateLesson as updateLessonDb } from "../db/lessons";
 import {
   createLessonSchema,
@@ -25,41 +26,40 @@ export const getLesson = async (
   chapterId: string,
   lessonId: string,
 ) => {
-  if (!(await requireAdminPermission())) return null;
-
-  const [existingCourse] = await db
-    .select()
-    .from(CourseTable)
-    .where(eq(CourseTable.id, courseId));
-  if (!existingCourse) return null;
-
-  const [existingChapter] = await db
-    .select()
-    .from(ChapterTable)
-    .where(
-      and(
-        eq(ChapterTable.courseId, existingCourse.id),
-        eq(ChapterTable.id, chapterId),
-      ),
-    );
-  if (!existingChapter) return null;
+  "use cache";
+  cacheTag(getLessonIdTag(lessonId));
 
   const [existingLesson] = await db
-    .select()
+    .select({
+      lesson: getTableColumns(LessonTable),
+      chapter: getTableColumns(ChapterTable),
+      course: getTableColumns(CourseTable),
+    })
     .from(LessonTable)
+    .innerJoin(ChapterTable, eq(ChapterTable.id, LessonTable.chapterId))
+    .innerJoin(CourseTable, eq(CourseTable.id, ChapterTable.courseId))
     .where(
       and(
-        eq(LessonTable.chapterId, existingChapter.id),
         eq(LessonTable.id, lessonId),
+        eq(ChapterTable.id, chapterId),
+        eq(CourseTable.id, courseId),
       ),
     );
   if (!existingLesson) return null;
 
-  return {
-    lesson: existingLesson,
-    chapter: existingChapter,
-    course: existingCourse,
-  };
+  return existingLesson;
+};
+
+export const getLearnerLesson = async (lessonId: string) => {
+  "use cache";
+  cacheTag(getLessonIdTag(lessonId));
+
+  const [existingLesson] = await db
+    .select()
+    .from(LessonTable)
+    .where(eq(LessonTable.id, lessonId));
+
+  return existingLesson ?? null;
 };
 
 export const createLesson = async (

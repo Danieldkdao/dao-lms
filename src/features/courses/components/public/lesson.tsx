@@ -1,7 +1,7 @@
 "use client";
 
 import { LessonTable } from "@/db/schema";
-import { generateImageUrl } from "@/lib/utils";
+import { generateFileUrl } from "@/lib/utils";
 import { PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -33,7 +33,7 @@ export const Lesson = ({
       try {
         if (!lesson.videoKey) return;
         const duration = await getVideoDuration(
-          generateImageUrl(lesson.videoKey),
+          generateFileUrl(lesson.videoKey),
         );
 
         setVideoDuration(duration);
