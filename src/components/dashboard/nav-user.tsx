@@ -20,7 +20,6 @@ import { authClient } from "@/lib/auth/auth-client";
 import {
   EllipsisVerticalIcon,
   CircleUserRoundIcon,
-  CreditCardIcon,
   BellIcon,
   LogOutIcon,
 } from "lucide-react";
