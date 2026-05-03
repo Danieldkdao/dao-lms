@@ -15,7 +15,7 @@ export const MarkdownRenderer = ({
   return (
     <div
       className={cn(
-        "text-base leading-7 text-foreground",
+        "min-w-0 max-w-full text-base leading-7 text-foreground",
         "[&_p]:my-1",
         "[&_h1]:mb-4 [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:leading-tight",
         "[&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-tight",
@@ -25,8 +25,10 @@ export const MarkdownRenderer = ({
         "[&_li]:my-1",
         "[&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground",
         "[&_code]:rounded-sm [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-sm",
-        "[&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-4",
+        "[&_pre]:my-4 [&_pre]:box-border [&_pre]:w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-4",
+        "[&_pre]:whitespace-pre",
         "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
+        "[&_pre_code]:block [&_pre_code]:w-max [&_pre_code]:min-w-full",
         "[&_hr]:my-6 [&_hr]:border-border",
         "[&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_table]:overflow-hidden",
         "[&_thead]:bg-muted",

@@ -353,7 +353,7 @@ export const MDEditor = ({
   return (
     <TooltipProvider>
       <div className={cn("space-y-2", className)}>
-        <div className="overflow-hidden rounded-md border border-input bg-card text-card-foreground shadow-xs transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+        <div className="min-w-0 overflow-hidden rounded-md border border-input bg-card text-card-foreground shadow-xs transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
           <div className="flex min-h-14 flex-wrap items-center gap-1 border-b border-border bg-muted/40 px-3 py-2">
             {editor &&
               toolbarGroups.map((group, index) => (
@@ -389,7 +389,8 @@ export const MDEditor = ({
           <EditorContent
             editor={editor}
             className={cn(
-              "bg-transparent dark:bg-input/30 max-h-250 overflow-auto",
+              "min-w-0 max-w-full bg-transparent dark:bg-input/30 max-h-250 overflow-auto",
+              "[&_.ProseMirror]:min-w-0 [&_.ProseMirror]:max-w-full",
               "[&_.ProseMirror_p]:text-base [&_.ProseMirror_p]:my-1",
               "[&_.ProseMirror_h1]:text-3xl [&_.ProseMirror_h1]:font-semibold [&_.ProseMirror_h1]:leading-tight [&_.ProseMirror_h1]:mb-4",
               "[&_.ProseMirror_h2]:text-2xl [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h2]:leading-tight [&_.ProseMirror_h2]:mb-2",
@@ -398,8 +399,8 @@ export const MDEditor = ({
               "[&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6 [&_.ProseMirror_ol]:my-2",
               "[&_.ProseMirror_blockquote]:border-l-2 [&_.ProseMirror_blockquote]:border-border [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:text-muted-foreground",
               "[&_.ProseMirror_code]:rounded-sm [&_.ProseMirror_code]:bg-muted [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:py-0.5 [&_.ProseMirror_code]:font-mono [&_.ProseMirror_code]:text-sm",
-              "[&_.ProseMirror_pre]:overflow-x-auto [&_.ProseMirror_pre]:rounded-md [&_.ProseMirror_pre]:bg-muted [&_.ProseMirror_pre]:p-4",
-              "[&_.ProseMirror_pre_code]:bg-transparent [&_.ProseMirror_pre_code]:p-0",
+              "[&_.ProseMirror_pre]:box-border [&_.ProseMirror_pre]:w-full [&_.ProseMirror_pre]:max-w-full [&_.ProseMirror_pre]:overflow-x-auto [&_.ProseMirror_pre]:whitespace-pre [&_.ProseMirror_pre]:rounded-md [&_.ProseMirror_pre]:bg-muted [&_.ProseMirror_pre]:p-4",
+              "[&_.ProseMirror_pre_code]:block [&_.ProseMirror_pre_code]:w-max [&_.ProseMirror_pre_code]:min-w-full [&_.ProseMirror_pre_code]:bg-transparent [&_.ProseMirror_pre_code]:p-0",
               "[&_.ProseMirror_hr]:my-6 [&_.ProseMirror_hr]:border-border",
               "[&_.ProseMirror_.tableWrapper]:my-4 [&_.ProseMirror_.tableWrapper]:overflow-x-auto",
               "[&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_table]:table-fixed",

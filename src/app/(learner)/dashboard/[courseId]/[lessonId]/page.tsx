@@ -28,7 +28,7 @@ const CourseLearningLessonPage = (props: CourseLearningLessonParams) => {
 
 const CourseLearningLessonLoading = () => {
   return (
-    <div className="grid grid-cols-[375px_1fr]">
+    <div className="grid grid-cols-[375px_minmax(0,1fr)]">
       <div className="w-full border-r h-full">
         <div className="flex flex-col gap-4 p-4">
           <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ const CourseLearningLessonSuspense = async ({
   }
 
   return (
-    <div className="grid grid-cols-[375px_1fr]">
+    <div className="grid grid-cols-[375px_minmax(0,1fr)]">
       <div className="w-full">
         <LearnerCourseOutlineSidebar
           courseId={courseId}
@@ -108,7 +108,7 @@ const CourseLearningLessonSuspense = async ({
           lessonId={lesson.id}
         />
       </div>
-      <div className="p-5 flex flex-col gap-4">
+      <div className="min-w-0 p-5 flex flex-col gap-4">
         {lesson.videoKey ? (
           <video
             src={generateFileUrl(lesson.videoKey)}
@@ -133,7 +133,7 @@ const CourseLearningLessonSuspense = async ({
           isCompleted={!!lesson.progress?.completed}
         />
         <Separator />
-        <div>
+        <div className="min-w-0">
           <h1 className="text-3xl font-semibold">{lesson.name}</h1>
           <MarkdownRenderer content={lesson.description} />
         </div>
