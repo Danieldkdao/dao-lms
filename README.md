@@ -1,4 +1,4 @@
-# Dao LMS
+# [Dao LMS](https://lms.danieldkdao.com)
 
 A modern learning management system built with Next.js. Dao LMS supports public course discovery, Stripe-powered enrollment, learner dashboards, lesson progress, and an admin workspace for managing courses, chapters, lessons, media, and analytics.
 
